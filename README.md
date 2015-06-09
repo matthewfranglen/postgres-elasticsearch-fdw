@@ -1,5 +1,16 @@
+PostgreSQL Elasticsearch foreign data wrapper
+=============================================
+
+The general idea is to store a canonical version of application data
+in PostgreSQL and send only partial data to Elasticsearch. Most applications
+handle this with complicated event systems. Foreign data wrapper allows
+PostgreSQL to communicate with Elasticsearch directly.
+
+With a couple of triggers, all relevant changes to application data will
+automatically propagate to Elasticsearch.
+
 Installation
-============
+------------
 
 Prerequisities: python >=2.7 <3, any elasticsearch, postgres >=9.2
 
@@ -18,7 +29,7 @@ Optionally you may install multicorn as `postgresql-9.4-python-multicorn` apt pa
 (The python3 variant probably works as well but it was not tested.)
 
 Usage
-=====
+-----
 
 ```sql
 CREATE EXTENSION multicorn;
@@ -84,3 +95,13 @@ CREATE TRIGGER es_delete_article
 	FOR EACH ROW EXECUTE PROCEDURE delete_article();
 
 ```
+
+Caveats
+-------
+
+Elasticsearch does not support transactions, so the elasticsearch index
+is not guaranteed to be synchronized with the canonical version in PostgreSQL.
+Unfortunatelly this is the case even for serializable isolation level transactions.
+It would however be possible to check against Elasticsearch version field and locking.
+
+Rollback is currently not supported.
