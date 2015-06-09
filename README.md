@@ -1,3 +1,20 @@
+Installation
+============
+
+```bash
+git clone https://github.com/Kozea/Multicorn /tmp/multicorn
+cd $_
+git checkout v1.1.0 # newer 1.2.0 does not compile on OS X
+make install
+
+git clone https://github.com/Mikulas/pg-es-fdw /tmp/pg-es-fdw
+cd $_
+python setup.py install
+```
+
+Usage
+=====
+
 ```sql
 CREATE EXTENSION multicorn;
 
