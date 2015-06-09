@@ -9,6 +9,8 @@ PostgreSQL to communicate with Elasticsearch directly.
 With a couple of triggers, all relevant changes to application data will
 automatically propagate to Elasticsearch.
 
+[**Demo / screencast**](https://asciinema.org/a/7gclt1tl7nj2tzj1fohibe8yg)
+
 Installation
 ------------
 
