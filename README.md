@@ -12,6 +12,9 @@ cd $_
 python setup.py install
 ```
 
+Optionally you may install multicorn as `postgresql-9.4-python-multicorn` apt package.
+(The python3 variant probably works as well but it was not tested.)
+
 Usage
 =====
 
