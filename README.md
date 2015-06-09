@@ -1,6 +1,8 @@
 Installation
 ============
 
+Prerequisities: python >=2.7 <3, any elasticsearch, postgres >=9.2
+
 ```bash
 git clone https://github.com/Kozea/Multicorn /tmp/multicorn
 cd $_
