@@ -5,6 +5,6 @@ postgres:
     ports:
         - "5432:5432"
 elasticsearch:
-    image: elasticsearch:1
+    image: elasticsearch:2
     ports:
         - "9200:9200"
