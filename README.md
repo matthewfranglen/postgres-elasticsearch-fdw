@@ -1,109 +1,117 @@
-PostgreSQL Elasticsearch foreign data wrapper
-=============================================
+PostgreSQL Elastic Search foreign data wrapper
+==============================================
 
-The general idea is to store a canonical version of application data
-in PostgreSQL and send only partial data to Elasticsearch. Most applications
-handle this with complicated event systems. Foreign data wrapper allows
-PostgreSQL to communicate with Elasticsearch directly.
+This allows you to index data in elastic search and then search it from
+postgres. This does not store the documents in elastic search.
 
-With a couple of triggers, all relevant changes to application data will
-automatically propagate to Elasticsearch.
-
-[**Demo / screencast**](https://asciinema.org/a/7gclt1tl7nj2tzj1fohibe8yg)
+By using a foreign table to elastic search, which is paired with a normal table
+with triggers, it is possible to search the normal table using elastic search.
 
 Installation
 ------------
 
-Prerequisities: python >=2.7 <3, any elasticsearch, postgres >=9.2
+The configuration requirements for this can be found in the `Dockerfile` within
+this folder.
 
-```bash
-git clone https://github.com/Kozea/Multicorn /tmp/multicorn
-cd $_
-git checkout v1.1.0 # newer 1.2.0 does not compile on OS X
-make install
+The fundamental requirements are:
 
-git clone https://github.com/Mikulas/pg-es-fdw /tmp/pg-es-fdw
-cd $_
-python setup.py install
-```
+ * Python >=2.7
+ * elastic search
+ * postgres >=9.2
+ * python-multicorn for the postgres version
+ * python-elasticsearch
 
-Optionally you may install multicorn as `postgresql-9.4-python-multicorn` apt package.
-(The python3 variant probably works as well but it was not tested.)
+You can then install this wrapper by running `setup.py`.
 
 Usage
 -----
+
+A running configuration for this can be found in the `docker-compose.yml`
+within this folder.
+
+The basic steps are:
+
+ * Load the extension
+ * Create the server
+ * Create the foreign table
+ * Populate the foreign table
+ * Query the foreign table...
+
+The first insert into the table will create the index if it does not already
+exist. If you want to set the schema you should do it before using this wrapper.
+
+If the index does not exist then several types of operation on the table will
+fail.
+
+You can pair this with an existing table using triggers. An example of that is
+in the `sql/create-triggered-table.sql` file.
+
+### Load extension and Create server
 
 ```sql
 CREATE EXTENSION multicorn;
 
 CREATE SERVER multicorn_es FOREIGN DATA WRAPPER multicorn
 OPTIONS (
-  wrapper 'dite.ElasticsearchFDW'
+  wrapper 'pg_es.ElasticsearchFDW'
 );
+```
 
-CREATE TABLE articles (
-    id serial PRIMARY KEY,
-    title text NOT NULL,
-    content text NOT NULL,
-    created_at timestamp
-);
+### Create the foreign table
 
-CREATE FOREIGN TABLE articles_es (
-    id bigint,
-    title text,
-    content text
-) SERVER multicorn_es OPTIONS (host '127.0.0.1', port '9200', node 'test', index 'articles');
+```sql
+CREATE FOREIGN TABLE articles_es
+    (
+        id BIGINT,
+        title TEXT,
+        content TEXT
+    )
+SERVER multicorn_es
+OPTIONS
+    (
+        host 'elasticsearch',
+        port '9200',
+        index 'article-index',
+        type 'article'
+    )
+;
+```
 
+### Populate the foreign table
 
+```sql
+INSERT INTO articles_es
+    (
+        id,
+        title,
+        content
+    )
+VALUES
+    (
+        1,
+        'foo',
+        'spike'
+    );
+```
 
-CREATE OR REPLACE FUNCTION index_article() RETURNS trigger AS $def$
-    BEGIN
-        INSERT INTO articles_es (id, title, content) VALUES
-            (NEW.id, NEW.title, NEW.content);
-        RETURN NEW;
-    END;
-$def$ LANGUAGE plpgsql;
+### Query the foreign table
 
-CREATE OR REPLACE FUNCTION reindex_article() RETURNS trigger AS $def$
-    BEGIN
-        UPDATE articles_es SET
-            title = NEW.title,
-            content = NEW.content
-        WHERE id = NEW.id;
-        RETURN NEW;
-    END;
-$def$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION delete_article() RETURNS trigger AS $def$
-    BEGIN
-        DELETE FROM articles_es a WHERE a.id = OLD.id;
-        RETURN OLD;
-    END;
-$def$ LANGUAGE plpgsql;
-
-
-CREATE TRIGGER es_insert_article
-    AFTER INSERT ON articles
-    FOR EACH ROW EXECUTE PROCEDURE index_article();
-
-CREATE TRIGGER es_update_article
-    AFTER UPDATE OF title, content ON articles
-    FOR EACH ROW
-    WHEN (OLD.* IS DISTINCT FROM NEW.*)
-    EXECUTE PROCEDURE reindex_article();
-
-CREATE TRIGGER es_delete_article
-    BEFORE DELETE ON articles
-    FOR EACH ROW EXECUTE PROCEDURE delete_article();
-
+```sql
+SELECT
+    id,
+    title,
+    content
+FROM
+    articles_es
+;
 ```
 
 Caveats
 -------
 
-Elasticsearch does not support transactions, so the elasticsearch index
+Elastic Search does not support transactions, so the elasticsearch index
 is not guaranteed to be synchronized with the canonical version in PostgreSQL.
-Unfortunatelly this is the case even for serializable isolation level transactions.
-It would however be possible to check against Elasticsearch version field and locking.
+Unfortunately this is the case even for serializable isolation level transactions.
+It would however be possible to check against Elastic Search version field and locking.
 
 Rollback is currently not supported.
