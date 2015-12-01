@@ -1,7 +1,7 @@
 """ Elastic Search foreign data wrapper
     Author: Mikulas Dite
 """
-# pylint: disable=super-on-old-class, unused-argument
+# pylint: disable=super-on-old-class, unused-argument, import-error
 
 from functools import partial
 
