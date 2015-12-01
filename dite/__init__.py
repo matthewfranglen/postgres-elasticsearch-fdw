@@ -31,7 +31,9 @@ class ElasticsearchFDW(ForeignDataWrapper):
             Returns a tuple of the form (nb_row, avg width) """
 
         conn = httplib.HTTPConnection(self.host, self.port)
-        conn.request("GET", "/%s/%s/_count" % (self.node, self.index))
+        conn.request("GET", "/{0}/{1}/_count".format(
+            self.node, self.index
+        ))
         resp = conn.getresponse()
 
         if resp.status != 200:
@@ -46,7 +48,9 @@ class ElasticsearchFDW(ForeignDataWrapper):
         """ Execute the query """
 
         conn = httplib.HTTPConnection(self.host, self.port)
-        conn.request("GET", "/%s/%s/_search?q=*:*&size=100000000" % (self.node, self.index))
+        conn.request("GET", "/{0}/{1}/_search?q=*:*&size=100000000".format(
+            self.node, self.index
+        ))
         resp = conn.getresponse()
 
         if resp.status != 200:
@@ -79,10 +83,13 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
     def insert(self, new_values):
         """ Insert new documents into Elastic Search """
-        log2pg('MARK Insert Request - new values:  %s' % new_values, logging.DEBUG)
+        log2pg('MARK Insert Request - new values: {}'.format(new_values), logging.DEBUG)
 
         if 'id' not in new_values:
-            log2pg('INSERT requires "id" column.  Missing in: %s' % new_values, logging.ERROR)
+            log2pg(
+                'INSERT requires "id" column. Missing in: {}'.format(new_values),
+                logging.ERROR
+            )
 
         document_id = new_values['id']
         new_values.pop('id', None)
@@ -98,10 +105,11 @@ class ElasticsearchFDW(ForeignDataWrapper):
         """ Delete documents from Elastic Search """
 
         conn = httplib.HTTPConnection(self.host, self.port)
-        conn.request("DELETE", "/%s/%s/%s" % (self.node, self.index, document_id))
+        conn.request("DELETE", "/{0}/{1}/{2}".format(self.node, self.index, document_id))
         resp = conn.getresponse()
+
         if resp.status != 200:
-            log2pg('Failed to delete: %s' % resp.read(), logging.ERROR)
+            log2pg('Failed to delete: {}'.format(resp.read()), logging.ERROR)
             return
 
         raw = resp.read()
@@ -112,7 +120,9 @@ class ElasticsearchFDW(ForeignDataWrapper):
         content = json.dumps(values)
 
         conn = httplib.HTTPConnection(self.host, self.port)
-        conn.request("PUT", "/%s/%s/%s" % (self.node, self.index, document_id), content)
+        conn.request(
+            "PUT", "/{0}/{1}/{2}".format(self.node, self.index, document_id), content
+        )
         resp = conn.getresponse()
 
         if resp.status != 200:
