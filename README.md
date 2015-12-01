@@ -57,28 +57,28 @@ CREATE FOREIGN TABLE articles_es (
 
 
 CREATE OR REPLACE FUNCTION index_article() RETURNS trigger AS $def$
-	BEGIN
-		INSERT INTO articles_es (id, title, content) VALUES
-			(NEW.id, NEW.title, NEW.content);
-		RETURN NEW;
-	END;
+    BEGIN
+        INSERT INTO articles_es (id, title, content) VALUES
+            (NEW.id, NEW.title, NEW.content);
+        RETURN NEW;
+    END;
 $def$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION reindex_article() RETURNS trigger AS $def$
-	BEGIN
-		UPDATE articles_es SET
-			title = NEW.title,
-			content = NEW.content
-		WHERE id = NEW.id;
-		RETURN NEW;
-	END;
+    BEGIN
+        UPDATE articles_es SET
+            title = NEW.title,
+            content = NEW.content
+        WHERE id = NEW.id;
+        RETURN NEW;
+    END;
 $def$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION delete_article() RETURNS trigger AS $def$
-	BEGIN
-		DELETE FROM articles_es a WHERE a.id = OLD.id;
-		RETURN OLD;
-	END;
+    BEGIN
+        DELETE FROM articles_es a WHERE a.id = OLD.id;
+        RETURN OLD;
+    END;
 $def$ LANGUAGE plpgsql;
 
 
@@ -93,8 +93,8 @@ CREATE TRIGGER es_update_article
     EXECUTE PROCEDURE reindex_article();
 
 CREATE TRIGGER es_delete_article
-	BEFORE DELETE ON articles
-	FOR EACH ROW EXECUTE PROCEDURE delete_article();
+    BEFORE DELETE ON articles
+    FOR EACH ROW EXECUTE PROCEDURE delete_article();
 
 ```
 
