@@ -1,0 +1,10 @@
+postgres:
+    build: .
+    links:
+        - elasticsearch
+    ports:
+        - "5432:5432"
+elasticsearch:
+    image: elasticsearch:1
+    ports:
+        - "9200:9200"
