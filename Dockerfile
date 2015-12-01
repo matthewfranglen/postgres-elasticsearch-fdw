@@ -5,6 +5,7 @@ RUN apt-get install --yes           \
     postgresql-9.4-python-multicorn \
     python                          \
     python-pip
+RUN pip install elasticsearch
 
 COPY . /pg-es-fdw
 WORKDIR /pg-es-fdw

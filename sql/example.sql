@@ -16,8 +16,8 @@ OPTIONS
     (
         host 'elasticsearch',
         port '9200',
-        node 'test',
-        index 'articles'
+        index 'article-index',
+        type 'article'
     )
 ;
 

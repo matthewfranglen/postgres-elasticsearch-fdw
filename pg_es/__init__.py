@@ -1,13 +1,11 @@
-""" Elastic Search foreign data wrapper
-    Author: Mikulas Dite
-"""
-# pylint: disable=super-on-old-class, unused-argument, import-error
-
-from functools import partial
+""" Elastic Search foreign data wrapper """
+# pylint: disable=super-on-old-class, unused-argument, import-error, broad-except, line-too-long
 
 import httplib
 import json
 import logging
+
+from elasticsearch import Elasticsearch
 
 from multicorn import ForeignDataWrapper
 from multicorn.utils import log_to_postgres as log2pg
@@ -30,95 +28,142 @@ class ElasticsearchFDW(ForeignDataWrapper):
     def __init__(self, options, columns):
         super(ElasticsearchFDW, self).__init__(options, columns)
 
-        self.host = options.get('host', 'localhost')
-        self.port = int(options.get('port', '9200'))
-        self.node = options.get('node', '')
         self.index = options.get('index', '')
-
+        self.doc_type = options.get('type', '')
         self._rowid_column = options.get('rowid_column', 'id')
+
+        self.client = Elasticsearch([{
+            'host': options.get('host', 'localhost'),
+            'port': int(options.get('port', '9200'))
+        }])
 
         self.columns = columns
 
     def get_rel_size(self, quals, columns):
         """ Helps the planner by returning costs.
-            Returns a tuple of the form (nb_row, avg width) """
+            Returns a tuple of the form (number of rows, average row width) """
 
-        response = self._make_request(
-            "GET", "/{0}/{1}/_count".format(self.node, self.index)
-        )
-
-        if response.status != 200:
+        try:
+            response = self.client.count(
+                index=self.index,
+                doc_type=self.doc_type
+            )
+            return (response['count'], len(columns) * 100)
+        except Exception as exception:
+            log2pg(
+                "COUNT for /{index}/{doc_type} failed: {exception}".format(
+                    index=self.index,
+                    doc_type=self.doc_type,
+                    exception=exception
+                ),
+                logging.ERROR
+            )
             return (0, 0)
-
-        data = json.loads(response.read())
-        return (data['count'], len(columns) * 100)
 
     def execute(self, quals, columns):
         """ Execute the query """
 
-        response = self._make_request(
-            "GET", "/{0}/{1}/_search?q=*:*&size=100000000".format(self.node, self.index)
-        )
-
-        if response.status != 200:
+        try:
+            response = self.client.search(
+                index=self.index,
+                doc_type=self.doc_type
+            )
+            return self._convert_response(response, columns)
+        except Exception as exception:
+            log2pg(
+                "SEARCH for /{index}/{doc_type} failed: {exception}".format(
+                    index=self.index,
+                    doc_type=self.doc_type,
+                    exception=exception
+                ),
+                logging.ERROR
+            )
             return (0, 0)
-
-        data = json.loads(response.read())
-        return self._convert_response(data, columns)
 
     def insert(self, new_values):
         """ Insert new documents into Elastic Search """
-        log2pg('MARK Insert Request - new values: {}'.format(new_values), logging.DEBUG)
 
         if self.rowid_column not in new_values:
             log2pg(
-                'INSERT requires "id" column. Missing in: {}'.format(new_values),
+                'INSERT requires "{rowid}" column. Missing in: {values}'.format(
+                    rowid=self.rowid_column,
+                    values=new_values
+                ),
                 logging.ERROR
             )
+            return (0, 0)
 
         document_id = new_values[self.rowid_column]
         new_values.pop(self.rowid_column, None)
-        return self._upsert(document_id, new_values)
+
+        try:
+            response = self.client.index(
+                index=self.index,
+                doc_type=self.doc_type,
+                id=document_id,
+                body=new_values
+            )
+            return response
+        except Exception as exception:
+            log2pg(
+                "INDEX for /{index}/{doc_type}/{document_id} and document {document} failed: {exception}".format(
+                    index=self.index,
+                    doc_type=self.doc_type,
+                    document_id=document_id,
+                    document=new_values,
+                    exception=exception
+                ),
+                logging.ERROR
+            )
+            return (0, 0)
 
     def update(self, document_id, new_values):
         """ Update existing documents in Elastic Search """
 
         new_values.pop(self.rowid_column, None)
-        return self._upsert(document_id, new_values)
+
+        try:
+            response = self.client.index(
+                index=self.index,
+                doc_type=self.doc_type,
+                id=document_id,
+                body=new_values
+            )
+            return response
+        except Exception as exception:
+            log2pg(
+                "INDEX for /{index}/{doc_type}/{document_id} and document {document} failed: {exception}".format(
+                    index=self.index,
+                    doc_type=self.doc_type,
+                    document_id=document_id,
+                    document=new_values,
+                    exception=exception
+                ),
+                logging.ERROR
+            )
+            return (0, 0)
 
     def delete(self, document_id):
         """ Delete documents from Elastic Search """
 
-        response = self._make_request(
-            "DELETE", "/{0}/{1}/{2}".format(self.node, self.index, document_id)
-        )
-
-        if response.status != 200:
-            log2pg('Failed to delete: {}'.format(response.read()), logging.ERROR)
-            return
-
-        return json.loads(response.read())
-
-    def _upsert(self, document_id, values):
-        """ Insert or Update the document in Elastic Search """
-        content = json.dumps(values)
-
-        response = self._make_request(
-            "PUT", "/{0}/{1}/{2}".format(self.node, self.index, document_id), content
-        )
-
-        if response.status != 200:
-            log2pg('Failed to upsert: {}'.format(response.read()), logging.ERROR)
-            return None
-
-        return json.loads(response.read())
-
-    def _make_request(self, method, url, content=None):
-        """ Make a HTTP request to Elastic Search and return the response """
-
-        connection = httplib.HTTPConnection(self.host, self.port)
-        connection.request(method, url, content)
-        return connection.getresponse()
+        try:
+            response = self.client.delete(
+                index=self.index,
+                doc_type=self.doc_type,
+                id=document_id
+            )
+            return response
+        except Exception as exception:
+            log2pg(
+                "DELETE for /{index}/{doc_type}/{document_id} failed: {exception}".format(
+                    index=self.index,
+                    doc_type=self.doc_type,
+                    document_id=document_id,
+                    exception=exception
+                ),
+                logging.ERROR
+            )
+            return (0, 0)
 
     def _convert_response(self, data, columns):
         return [
