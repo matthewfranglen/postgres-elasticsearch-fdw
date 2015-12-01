@@ -24,6 +24,14 @@ class ElasticsearchFDW(ForeignDataWrapper):
         self.node = options.get('node', '')
         self.index = options.get('index', '')
 
+        # The rowid_column is a column name which will act as a rowid column
+        # for delete/update operations.
+        #
+        # This can be either an existing column name, or a made-up one. This
+        # column name should be subsequently present in every returned
+        # resultset.
+        self.rowid_column = options.get('id', 'id')
+
         self.columns = columns
 
     def get_rel_size(self, quals, columns):
@@ -55,7 +63,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         for hit in data['hits']['hits']:
             row = {}
             for col in columns:
-                if col == 'id':
+                if col == self.rowid_column:
                     row[col] = hit['_id']
                 elif col in hit['_source']:
                     row[col] = hit['_source'][col]
@@ -63,35 +71,24 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
         return out
 
-    @property
-    def rowid_column(self):
-        """ Returns a column name which will act as a rowid column for
-            delete/update operations.
-
-            This can be either an existing column name, or a made-up one. This
-            column name should be subsequently present in every returned
-            resultset. """
-
-        return 'id'
-
     def insert(self, new_values):
         """ Insert new documents into Elastic Search """
         log2pg('MARK Insert Request - new values: {}'.format(new_values), logging.DEBUG)
 
-        if 'id' not in new_values:
+        if self.rowid_column not in new_values:
             log2pg(
                 'INSERT requires "id" column. Missing in: {}'.format(new_values),
                 logging.ERROR
             )
 
-        document_id = new_values['id']
-        new_values.pop('id', None)
+        document_id = new_values[self.rowid_column]
+        new_values.pop(self.rowid_column, None)
         return self._upsert(document_id, new_values)
 
     def update(self, document_id, new_values):
         """ Update existing documents in Elastic Search """
 
-        new_values.pop('id', None)
+        new_values.pop(self.rowid_column, None)
         return self._upsert(document_id, new_values)
 
     def delete(self, document_id):
