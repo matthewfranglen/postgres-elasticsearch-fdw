@@ -64,17 +64,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
             return (0, 0)
 
         data = json.loads(response.read())
-        out = []
-        for hit in data['hits']['hits']:
-            row = {}
-            for col in columns:
-                if col == self.rowid_column:
-                    row[col] = hit['_id']
-                elif col in hit['_source']:
-                    row[col] = hit['_source'][col]
-            out.append(row)
-
-        return out
+        return self._convert_response(data, columns)
 
     def insert(self, new_values):
         """ Insert new documents into Elastic Search """
@@ -129,3 +119,21 @@ class ElasticsearchFDW(ForeignDataWrapper):
         connection = httplib.HTTPConnection(self.host, self.port)
         connection.request(method, url, content)
         return connection.getresponse()
+
+    def _convert_response(self, data, columns):
+        return [
+            self._convert_response_row(row_data, columns)
+            for row_data in data['hits']['hits']
+        ]
+
+    def _convert_response_row(self, row_data, columns):
+        return {
+            column: self._convert_response_column(column, row_data)
+            for column in columns
+            if column in row_data['_source'] or column == self.rowid_column
+        }
+
+    def _convert_response_column(self, column, row_data):
+        if column == self.rowid_column:
+            return row_data['_id']
+        return row_data['_source'][column]
