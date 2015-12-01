@@ -16,6 +16,17 @@ from multicorn.utils import log_to_postgres as log2pg
 class ElasticsearchFDW(ForeignDataWrapper):
     """ Elastic Search Foreign Data Wrapper """
 
+    @property
+    def rowid_column(self):
+        """ Returns a column name which will act as a rowid column for
+            delete/update operations.
+
+            This can be either an existing column name, or a made-up one. This
+            column name should be subsequently present in every returned
+            resultset. """
+
+        return self._rowid_column
+
     def __init__(self, options, columns):
         super(ElasticsearchFDW, self).__init__(options, columns)
 
@@ -24,13 +35,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         self.node = options.get('node', '')
         self.index = options.get('index', '')
 
-        # The rowid_column is a column name which will act as a rowid column
-        # for delete/update operations.
-        #
-        # This can be either an existing column name, or a made-up one. This
-        # column name should be subsequently present in every returned
-        # resultset.
-        self.rowid_column = options.get('id', 'id')
+        self._rowid_column = options.get('rowid_column', 'id')
 
         self.columns = columns
 
