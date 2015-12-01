@@ -30,34 +30,27 @@ class ElasticsearchFDW(ForeignDataWrapper):
         """ Helps the planner by returning costs.
             Returns a tuple of the form (nb_row, avg width) """
 
-        conn = httplib.HTTPConnection(self.host, self.port)
-        conn.request("GET", "/{0}/{1}/_count".format(
-            self.node, self.index
-        ))
-        resp = conn.getresponse()
+        response = self._make_request(
+            "GET", "/{0}/{1}/_count".format(self.node, self.index)
+        )
 
-        if resp.status != 200:
+        if response.status != 200:
             return (0, 0)
 
-        raw = resp.read()
-        data = json.loads(raw)
-
+        data = json.loads(response.read())
         return (data['count'], len(columns) * 100)
 
     def execute(self, quals, columns):
         """ Execute the query """
 
-        conn = httplib.HTTPConnection(self.host, self.port)
-        conn.request("GET", "/{0}/{1}/_search?q=*:*&size=100000000".format(
-            self.node, self.index
-        ))
-        resp = conn.getresponse()
+        response = self._make_request(
+            "GET", "/{0}/{1}/_search?q=*:*&size=100000000".format(self.node, self.index)
+        )
 
-        if resp.status != 200:
+        if response.status != 200:
             return (0, 0)
 
-        raw = resp.read()
-        data = json.loads(raw)
+        data = json.loads(response.read())
         out = []
         for hit in data['hits']['hits']:
             row = {}
@@ -104,31 +97,33 @@ class ElasticsearchFDW(ForeignDataWrapper):
     def delete(self, document_id):
         """ Delete documents from Elastic Search """
 
-        conn = httplib.HTTPConnection(self.host, self.port)
-        conn.request("DELETE", "/{0}/{1}/{2}".format(self.node, self.index, document_id))
-        resp = conn.getresponse()
+        response = self._make_request(
+            "DELETE", "/{0}/{1}/{2}".format(self.node, self.index, document_id)
+        )
 
-        if resp.status != 200:
-            log2pg('Failed to delete: {}'.format(resp.read()), logging.ERROR)
+        if response.status != 200:
+            log2pg('Failed to delete: {}'.format(response.read()), logging.ERROR)
             return
 
-        raw = resp.read()
-        return json.loads(raw)
+        return json.loads(response.read())
 
     def _upsert(self, document_id, values):
         """ Insert or Update the document in Elastic Search """
         content = json.dumps(values)
 
-        conn = httplib.HTTPConnection(self.host, self.port)
-        conn.request(
+        response = self._make_request(
             "PUT", "/{0}/{1}/{2}".format(self.node, self.index, document_id), content
         )
-        resp = conn.getresponse()
 
-        if resp.status != 200:
-            return
+        if response.status != 200:
+            log2pg('Failed to upsert: {}'.format(response.read()), logging.ERROR)
+            return None
 
-        raw = resp.read()
-        data = json.loads(raw)
+        return json.loads(response.read())
 
-        return data
+    def _make_request(self, method, url, content=None):
+        """ Make a HTTP request to Elastic Search and return the response """
+
+        connection = httplib.HTTPConnection(self.host, self.port)
+        connection.request(method, url, content)
+        return connection.getresponse()
