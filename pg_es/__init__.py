@@ -1,5 +1,5 @@
 """ Elastic Search foreign data wrapper """
-# pylint: disable=super-on-old-class, unused-argument, import-error, broad-except, line-too-long
+# pylint: disable=super-on-old-class, import-error, unexpected-keyword-arg, broad-except, line-too-long
 
 import httplib
 import json
@@ -30,6 +30,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
         self.index = options.get('index', '')
         self.doc_type = options.get('type', '')
+        self.query_column = options.get('query_column', None)
         self._rowid_column = options.get('rowid_column', 'id')
 
         self.client = Elasticsearch([{
@@ -44,10 +45,19 @@ class ElasticsearchFDW(ForeignDataWrapper):
             Returns a tuple of the form (number of rows, average row width) """
 
         try:
-            response = self.client.count(
-                index=self.index,
-                doc_type=self.doc_type
-            )
+            query = self._get_query(quals)
+
+            if query:
+                response = self.client.count(
+                    index=self.index,
+                    doc_type=self.doc_type,
+                    q=query
+                )
+            else:
+                response = self.client.count(
+                    index=self.index,
+                    doc_type=self.doc_type
+                )
             return (response['count'], len(columns) * 100)
         except Exception as exception:
             log2pg(
@@ -64,11 +74,20 @@ class ElasticsearchFDW(ForeignDataWrapper):
         """ Execute the query """
 
         try:
-            response = self.client.search(
-                index=self.index,
-                doc_type=self.doc_type
-            )
-            return self._convert_response(response, columns)
+            query = self._get_query(quals)
+
+            if query:
+                response = self.client.search(
+                    index=self.index,
+                    doc_type=self.doc_type,
+                    q=query
+                )
+            else:
+                response = self.client.search(
+                    index=self.index,
+                    doc_type=self.doc_type
+                )
+            return self._convert_response(response, columns, query)
         except Exception as exception:
             log2pg(
                 "SEARCH for /{index}/{doc_type} failed: {exception}".format(
@@ -165,13 +184,39 @@ class ElasticsearchFDW(ForeignDataWrapper):
             )
             return (0, 0)
 
-    def _convert_response(self, data, columns):
+    def _get_query(self, quals):
+        if not self.query_column:
+            return None
+
+        return next(
+            (
+                qualifier.value
+                for qualifier in quals
+                if qualifier.field_name == self.query_column
+            ),
+            None
+        )
+
+    def _convert_response(self, data, columns, query):
         return [
-            self._convert_response_row(row_data, columns)
+            self._convert_response_row(row_data, columns, query)
             for row_data in data['hits']['hits']
         ]
 
-    def _convert_response_row(self, row_data, columns):
+    def _convert_response_row(self, row_data, columns, query):
+        if query:
+            # Postgres checks the query after too, so the query column needs to be present
+            return dict(
+                [
+                    (column, self._convert_response_column(column, row_data))
+                    for column in columns
+                    if column in row_data['_source'] or column == self.rowid_column
+                ]
+                +
+                [
+                    (self.query_column, query)
+                ]
+            )
         return {
             column: self._convert_response_column(column, row_data)
             for column in columns
