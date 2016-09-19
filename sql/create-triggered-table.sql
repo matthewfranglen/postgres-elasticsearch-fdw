@@ -25,7 +25,7 @@ OPTIONS
     (
         host '127.0.0.1',
         port '9200',
-        node 'test',
+        type 'test',
         index 'articles'
     )
 ;
