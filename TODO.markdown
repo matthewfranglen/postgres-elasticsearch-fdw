@@ -1,11 +1,26 @@
 TODOs
 =====
 
-I need to add a column that gets the score against the query. This should then be used to preserve ordering of results.
+Need Scoring
+------------
 
-I need to add support for LIMIT and I need to fetch all results by default. Currently limited to 10 results. Supporting scroll might be nice.
-It might be good to explicitly require a limit over the es query all the time.
+The `_score` column needs to be mappable as that is the rank of the result.
 
-Looks like LIMIT isn't pushed down to the FDW at this time: https://www.postgresql.org/message-id/31924.1459344783%40sss.pgh.pa.us
+Need Scrolling
+--------------
 
-So I need to support scroll better.
+The LIMIT clause is not pushed down to FDWs at this time: https://www.postgresql.org/message-id/31924.1459344783%40sss.pgh.pa.us
+
+So this needs to support scrolling. When creating the table the scroll size can be set.
+
+Need Tests / Travis
+-------------------
+
+Should be able to build this on every version of postgres that multicorn supports.
+
+The test can be a script that uses docker-compose to run an end to end test.
+
+Need Cleanup
+------------
+
+It's all sort of smushed together.
