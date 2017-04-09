@@ -1,11 +1,6 @@
 TODOs
 =====
 
-Need Scoring
-------------
-
-The `_score` column needs to be mappable as that is the rank of the result.
-
 Need Scrolling
 --------------
 
