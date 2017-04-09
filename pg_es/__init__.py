@@ -32,6 +32,8 @@ class ElasticsearchFDW(ForeignDataWrapper):
         self.doc_type = options.get('type', '')
         self.query_column = options.get('query_column', None)
         self.score_column = options.get('score_column', None)
+        self.scroll_size = int(options.get('scroll_size', '1000'))
+        self.scroll_duration = options.get('scroll_duration', '10m')
         self._rowid_column = options.get('rowid_column', 'id')
 
         self.client = Elasticsearch([{
@@ -81,14 +83,30 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 response = self.client.search(
                     index=self.index,
                     doc_type=self.doc_type,
+                    size=self.scroll_size,
+                    scroll=self.scroll_duration,
                     q=query
                 )
             else:
                 response = self.client.search(
                     index=self.index,
-                    doc_type=self.doc_type
+                    doc_type=self.doc_type,
+                    size=self.scroll_size,
+                    scroll=self.scroll_duration
                 )
-            return self._convert_response(response, columns, query)
+
+            while True:
+                scroll_id = response['_scroll_id']
+
+                for result in response['hits']['hits']:
+                    yield self._convert_response_row(result, columns, query)
+
+                if len(response['hits']['hits']) < self.scroll_size:
+                    return
+                response = self.client.scroll(
+                    scroll_id=scroll_id,
+                    scroll=self.scroll_duration
+                )
         except Exception as exception:
             log2pg(
                 "SEARCH for /{index}/{doc_type} failed: {exception}".format(
@@ -98,7 +116,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 ),
                 logging.ERROR
             )
-            return (0, 0)
+            return
 
     def insert(self, new_values):
         """ Insert new documents into Elastic Search """
