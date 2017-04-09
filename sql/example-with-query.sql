@@ -10,7 +10,8 @@ CREATE FOREIGN TABLE articles_es
         id BIGINT,
         title TEXT,
         content TEXT,
-        query TEXT
+        query TEXT,
+        score NUMERIC
     )
 SERVER multicorn_es
 OPTIONS
@@ -20,7 +21,8 @@ OPTIONS
         index 'article-index',
         type 'article',
         rowid_column 'id',
-        query_column 'query'
+        query_column 'query',
+        score_column 'score'
     )
 ;
 
@@ -58,7 +60,8 @@ FROM
 SELECT
     id,
     title,
-    content
+    content,
+    score
 FROM
     articles_es
 WHERE

@@ -31,6 +31,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         self.index = options.get('index', '')
         self.doc_type = options.get('type', '')
         self.query_column = options.get('query_column', None)
+        self.score_column = options.get('score_column', None)
         self._rowid_column = options.get('rowid_column', 'id')
 
         self.client = Elasticsearch([{
@@ -210,7 +211,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 [
                     (column, self._convert_response_column(column, row_data))
                     for column in columns
-                    if column in row_data['_source'] or column == self.rowid_column
+                    if column in row_data['_source'] or column == self.rowid_column or column == self.score_column
                 ]
                 +
                 [
@@ -220,10 +221,12 @@ class ElasticsearchFDW(ForeignDataWrapper):
         return {
             column: self._convert_response_column(column, row_data)
             for column in columns
-            if column in row_data['_source'] or column == self.rowid_column
+            if column in row_data['_source'] or column == self.rowid_column or column == self.score_column
         }
 
     def _convert_response_column(self, column, row_data):
         if column == self.rowid_column:
             return row_data['_id']
+        if column == self.score_column:
+            return row_data['_score']
         return row_data['_source'][column]
