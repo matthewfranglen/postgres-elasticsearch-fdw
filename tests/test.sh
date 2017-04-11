@@ -16,9 +16,18 @@ function main () {
 
     sleep 30
 
-    load_sql data/schema.sql
-    load_sql data/data.sql
-    load_json data/data.json
+    echo "Loading schema..."
+    load_sql "data/schema.sql" >/dev/null
+
+    echo "Loading Postgres data..."
+    load_sql "data/data.sql" >/dev/null
+
+    echo "Loading Elastic Search data..."
+    load_json "data/data.json" >/dev/null
+
+    echo "Testing read..."
+    perform_test "test/read.sql"
+    echo
 
     dc down
 }
@@ -33,13 +42,19 @@ function wait_for_pg () {
 function load_sql () {
     local SQL="${1:?Please provide file to load}"
 
-    exec_container postgres psql -U postgres postgres < "${SQL}"
+    exec_container postgres psql --username postgres postgres < "${SQL}"
 }
 
 function load_json () {
     local JSON="${1:?Please provide file to load}"
 
     curl --data-binary "@${JSON}" -H "Content-Type: application/x-ndjson" -XPOST "http://localhost:9200/_bulk"
+}
+
+function perform_test () {
+    local SQL="${1:?Please provide test file}"
+
+    exec_container postgres psql --username postgres --tuples-only --quiet postgres < "${SQL}"
 }
 
 function exec_container () {
