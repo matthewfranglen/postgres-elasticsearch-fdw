@@ -14,13 +14,17 @@ function main () {
     dc build
     dc up -d
 
-    sleep 30
+    echo -n "Waiting for Postgres"
+    wait_for_pg
 
     echo "Loading schema..."
     load_sql "data/schema.sql" >/dev/null
 
     echo "Loading Postgres data..."
     load_sql "data/data.sql" >/dev/null
+
+    echo -n "Waiting for Elastic Search"
+    wait_for_es
 
     echo "Loading Elastic Search data..."
     load_json "data/data.json" >/dev/null
@@ -33,10 +37,21 @@ function main () {
 }
 
 function wait_for_pg () {
-    while ! nc localhost 5432 </dev/null
+    while ! exec_container postgres psql --username postgres -l 2>/dev/null >/dev/null
     do
+        echo -n .
         sleep 1
     done
+    echo
+}
+
+function wait_for_es () {
+    while ! curl --fail "http://localhost:9200" >/dev/null
+    do
+        echo -n .
+        sleep 1
+    done
+    echo
 }
 
 function load_sql () {
