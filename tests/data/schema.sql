@@ -33,3 +33,5 @@ OPTIONS
         score_column 'score'
     )
 ;
+
+\q
