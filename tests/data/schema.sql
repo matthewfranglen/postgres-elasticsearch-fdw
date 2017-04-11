@@ -9,7 +9,7 @@ CREATE TABLE articles
     (
         id BIGINT,
         title TEXT,
-        content TEXT
+        body TEXT
     )
 ;
 
@@ -17,7 +17,7 @@ CREATE FOREIGN TABLE articles_es
     (
         id BIGINT,
         title TEXT,
-        content TEXT,
+        body TEXT,
         query TEXT,
         score NUMERIC
     )
