@@ -1,10 +1,15 @@
-postgres:
-    build: .
+version: '2'
+
+services:
+  postgres:
+    build:
+      context: ../../../
+      dockerfile: ./tests/docker/9.3/Dockerfile
     links:
         - elasticsearch
     ports:
         - "5432:5432"
-elasticsearch:
+  elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:5.3.0
     environment:
       - cluster.name=docker-cluster
