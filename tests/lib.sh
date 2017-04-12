@@ -29,13 +29,13 @@ function lib::wait_for () {
 }
 
 function lib::postgres_available () {
-    local OUTPUT=$(echo "select 1;" | lib::exec_container postgres psql --username postgres --tuples-only --quiet 2>/dev/null | tr -d "[:space:]")
+    local OUTPUT=$(echo "select 1;" | lib::exec_container postgres psql --username postgres --tuples-only --quiet | tr -d "[:space:]")
 
     [ "${OUTPUT}" = "1" ]
 }
 
 function lib::es_available () {
-    curl --silent --fail "http://localhost:9200" >/dev/null
+    curl --silent --fail "http://localhost:9200"
 }
 
 function lib::load_sql () {
