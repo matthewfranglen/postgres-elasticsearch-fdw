@@ -1,5 +1,9 @@
 language: bash
 
+install:
+    - sudo apt-get update -qq
+    - sudo apt-et install -qq curl
+
 services:
   - docker
 
