@@ -1,16 +1,38 @@
+readonly TIMEOUT=30
+
 function lib::wait_for_pg () {
+    local COUNT=0
+
     while ! exec_container postgres psql --username postgres -l 2>/dev/null >/dev/null
     do
         echo -n .
+
+        COUNT=$((${COUNT} + 1))
+        if [ ${COUNT} -gt ${TIMEOUT} ]
+        then
+            echo "Timeout!"
+            exit 1
+        fi
+
         sleep 1
     done
     echo
 }
 
 function lib::wait_for_es () {
+    local COUNT=0
+
     while ! curl --fail "http://localhost:9200" >/dev/null
     do
         echo -n .
+
+        COUNT=$((${COUNT} + 1))
+        if [ ${COUNT} -gt ${TIMEOUT} ]
+        then
+            echo "Timeout!"
+            exit 1
+        fi
+
         sleep 1
     done
     echo
