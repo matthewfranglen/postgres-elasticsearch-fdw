@@ -1,9 +1,18 @@
 readonly TIMEOUT=30
 
 function lib::wait_for_pg () {
+    lib::wait_for "lib::postgres_available"
+}
+
+function lib::wait_for_es () {
+    lib::wait_for "lib::es_available"
+}
+
+function lib::wait_for () {
+    local CONDITION="${1}"
     local COUNT=0
 
-    while ! exec_container postgres psql --username postgres -l 2>/dev/null >/dev/null
+    while ! eval ${CONDITION}
     do
         echo -n .
 
@@ -19,29 +28,18 @@ function lib::wait_for_pg () {
     echo
 }
 
-function lib::wait_for_es () {
-    local COUNT=0
+function lib::postgres_available () {
+    lib::exec_container postgres psql --username postgres -l 2>/dev/null >/dev/null
+}
 
-    while ! curl --fail "http://localhost:9200" >/dev/null
-    do
-        echo -n .
-
-        COUNT=$((${COUNT} + 1))
-        if [ ${COUNT} -gt ${TIMEOUT} ]
-        then
-            echo "Timeout!"
-            exit 1
-        fi
-
-        sleep 1
-    done
-    echo
+function lib::es_available () {
+    curl --fail "http://localhost:9200" >/dev/null
 }
 
 function lib::load_sql () {
     local SQL="${1:?Please provide file to load}"
 
-    exec_container postgres psql --username postgres postgres < "${SQL}"
+    lib::exec_container postgres psql --username postgres postgres < "${SQL}"
 }
 
 function lib::load_json () {
@@ -53,14 +51,14 @@ function lib::load_json () {
 function lib::perform_test () {
     local SQL="${1:?Please provide test file}"
 
-    exec_container postgres psql --username postgres --tuples-only --quiet postgres < "${SQL}"
+    lib::exec_container postgres psql --username postgres --tuples-only --quiet postgres < "${SQL}"
 }
 
 function lib::exec_container () {
     local CONTAINER="${1}"
     shift
 
-    docker exec -i $(dc ps -q "${CONTAINER}") "${@}"
+    docker exec -i $(lib::dc ps -q "${CONTAINER}") "${@}"
 }
 
 function lib::dc () {
