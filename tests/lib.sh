@@ -29,9 +29,14 @@ function lib::wait_for () {
 }
 
 function lib::postgres_available () {
+    if ! lib::exec_container postgres psql --username postgres -l
+    then
+        return 1
+    fi
+
     local OUTPUT=$(echo "select 1;" | lib::exec_container postgres psql --username postgres --tuples-only --quiet | tr -d "[:space:]")
 
-    [ $? -eq 0 ] && [ "${OUTPUT}" = "1" ]
+    [ "${OUTPUT}" = "1" ]
 }
 
 function lib::es_available () {
