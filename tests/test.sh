@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -uo pipefail
 
 readonly COMMAND=$(readlink -f "${0}")
 readonly FOLDER=$(dirname "${0}")
