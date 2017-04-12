@@ -8,15 +8,15 @@ readonly VERSION=${1:?Please provide version to test}
 
 cd "${FOLDER}"
 
+source lib.sh
+
 function main () {
     local RESULT=0
-
-    set_up
 
     load_test_data
 
     echo -n "Testing read..."
-    if [ $(perform_test "test/read.sql") != "t" ]
+    if [ $(lib::perform_test "test/read.sql") != "t" ]
     then
         RESULT=1
         echo "FAIL"
@@ -24,84 +24,24 @@ function main () {
         echo "PASS"
     fi
 
-    tear_down
-
     exit ${RESULT}
-}
-
-function set_up () {
-    dc stop       || true
-    dc rm --force || true
-    dc build
-    dc up -d
 }
 
 function load_test_data () {
     echo -n "Waiting for Postgres"
-    wait_for_pg
+    lib::wait_for_pg
 
     echo "Loading schema..."
-    load_sql "data/schema.sql" >/dev/null
+    lib::load_sql "data/schema.sql" >/dev/null
 
     echo "Loading Postgres data..."
-    load_sql "data/data.sql" >/dev/null
+    lib::load_sql "data/data.sql" >/dev/null
 
     echo -n "Waiting for Elastic Search"
-    wait_for_es
+    lib::wait_for_es
 
     echo "Loading Elastic Search data..."
-    load_json "data/data.json" >/dev/null
-}
-
-function tear_down () {
-    dc down
-}
-
-function wait_for_pg () {
-    while ! exec_container postgres psql --username postgres -l 2>/dev/null >/dev/null
-    do
-        echo -n .
-        sleep 1
-    done
-    echo
-}
-
-function wait_for_es () {
-    while ! curl --fail "http://localhost:9200" >/dev/null
-    do
-        echo -n .
-        sleep 1
-    done
-    echo
-}
-
-function load_sql () {
-    local SQL="${1:?Please provide file to load}"
-
-    exec_container postgres psql --username postgres postgres < "${SQL}"
-}
-
-function load_json () {
-    local JSON="${1:?Please provide file to load}"
-
-    curl --data-binary "@${JSON}" -H "Content-Type: application/x-ndjson" -XPOST "http://localhost:9200/_bulk"
-}
-
-function perform_test () {
-    local SQL="${1:?Please provide test file}"
-
-    exec_container postgres psql --username postgres --tuples-only --quiet postgres < "${SQL}"
-}
-
-function exec_container () {
-    local CONTAINER="${1}"
-    shift
-
-    docker exec -i $(dc ps -q "${CONTAINER}") "${@}"
-}
-
-function dc () {
-    docker-compose -f "docker/${VERSION}/docker-compose.yml" "${@}"
+    lib::load_json "data/data.json" >/dev/null
 }
 
 main
