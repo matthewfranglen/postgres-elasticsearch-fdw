@@ -1,5 +1,8 @@
 language: bash
 
+services:
+  - docker
+
 before_script: ./tests/set-up.sh "${PG_VERSION}"
 script: ./tests/test.sh "${PG_VERSION}"
 after_script: ./tests/tear-down.sh "${PG_VERSION}"
