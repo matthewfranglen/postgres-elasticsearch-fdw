@@ -29,7 +29,7 @@ function lib::wait_for () {
 }
 
 function lib::postgres_available () {
-    lib::exec_container postgres psql --username postgres -l 2>/dev/null >/dev/null
+    [ $(echo "select 1;" | lib::exec_container postgres psql --username postgres --tuples-only --quiet 2>/dev/null) = "1" ]
 }
 
 function lib::es_available () {
