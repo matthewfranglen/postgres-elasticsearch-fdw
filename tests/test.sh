@@ -9,11 +9,34 @@ readonly VERSION=${1:?Please provide version to test}
 cd "${FOLDER}"
 
 function main () {
+    local RESULT=0
+
+    set_up
+
+    load_test_data
+
+    echo -n "Testing read..."
+    if [ $(perform_test "test/read.sql") != "t" ]
+    then
+        RESULT=1
+        echo "FAIL"
+    else
+        echo "PASS"
+    fi
+
+    tear_down
+
+    exit ${RESULT}
+}
+
+function set_up () {
     dc stop       || true
     dc rm --force || true
     dc build
     dc up -d
+}
 
+function load_test_data () {
     echo -n "Waiting for Postgres"
     wait_for_pg
 
@@ -28,11 +51,9 @@ function main () {
 
     echo "Loading Elastic Search data..."
     load_json "data/data.json" >/dev/null
+}
 
-    echo "Testing read..."
-    perform_test "test/read.sql"
-    echo
-
+function tear_down () {
     dc down
 }
 
