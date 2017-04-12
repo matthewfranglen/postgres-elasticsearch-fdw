@@ -33,7 +33,7 @@ function lib::postgres_available () {
 }
 
 function lib::es_available () {
-    curl --fail "http://localhost:9200" >/dev/null
+    curl --silent --fail "http://localhost:9200" >/dev/null
 }
 
 function lib::load_sql () {
