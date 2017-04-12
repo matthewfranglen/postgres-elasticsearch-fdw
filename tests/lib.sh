@@ -29,7 +29,9 @@ function lib::wait_for () {
 }
 
 function lib::postgres_available () {
-    [ $(echo "select 1;" | lib::exec_container postgres psql --username postgres --tuples-only --quiet 2>/dev/null) = "1" ]
+    local OUTPUT=$(echo "select 1;" | lib::exec_container postgres psql --username postgres --tuples-only --quiet 2>/dev/null | tr -d "[:space:]")
+
+    [ "${OUTPUT}" = "1" ]
 }
 
 function lib::es_available () {
@@ -51,7 +53,7 @@ function lib::load_json () {
 function lib::perform_test () {
     local SQL="${1:?Please provide test file}"
 
-    lib::exec_container postgres psql --username postgres --tuples-only --quiet postgres < "${SQL}"
+    lib::exec_container postgres psql --username postgres --tuples-only --quiet postgres < "${SQL}" | tr -d "[:space:]"
 }
 
 function lib::exec_container () {
