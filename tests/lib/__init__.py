@@ -1,6 +1,7 @@
 from os.path import abspath, dirname, join
 
 import io
+import json
 import psycopg2
 import re
 import requests
@@ -43,6 +44,13 @@ def load_sql_file(version, filename):
     f = join(TEST_FOLDER, 'data', filename)
     with open(f, 'r') as handle:
         exec_container(version, 'postgres')('psql', '--username', 'postgres', 'postgres', _in=handle)
+
+def load_json_file(version, filename):
+    f = join(TEST_FOLDER, 'data', filename)
+    headers = {'Content-Type': 'application/x-ndjson'}
+    with open(f, 'r') as handle:
+        body = handle.read().encode(encoding='utf-8')
+        requests.post('http://localhost:9200/_bulk', headers=headers, data=body)
 
 def sql(statement):
     with psycopg2.connect(host='localhost', port=5432, user='postgres', dbname='postgres') as conn:

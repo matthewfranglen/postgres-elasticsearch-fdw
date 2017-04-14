@@ -21,3 +21,9 @@ if __name__ == "__main__":
 
     print('Loading Postgres data...')
     lib.load_sql_file(version, 'data.sql')
+
+    print('Waiting for Elastic Search...')
+    lib.wait_for(lib.es_is_available)
+
+    print('Loading Elastic Search data...')
+    lib.load_json_file(version, 'data.json')
