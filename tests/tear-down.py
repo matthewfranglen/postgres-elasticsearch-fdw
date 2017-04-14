@@ -9,7 +9,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     version = args.version
-    dc = lambda *args: lib.docker_compose(version, *args)
+    dc = lib.docker_compose(version)
 
     print('Stopping testing environment for PostgreSQL {version}...'.format(version=version))
 
