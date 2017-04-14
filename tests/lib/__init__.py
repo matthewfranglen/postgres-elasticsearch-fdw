@@ -22,26 +22,27 @@ def exec_container(version, container):
         return sh.docker.bake('exec', '-i', container)
 
 def wait_for(condition):
-    for i in xrange(120):
+    for i in range(120):
         if condition():
             return True
         time.sleep(1)
 
-def test_pg():
+def pg_is_available():
     try:
         return sql('select 1 + 1;')[0][0] == 2
     except Exception:
         return False
 
-def test_es():
+def es_is_available():
     try:
         return requests.get('http://localhost:9200').json()['tagline'] == 'You Know, for Search'
     except Exception:
         return False
 
 def load_sql_file(version, filename):
-    with open(filename, 'r') as handle:
-        exec_container(version, 'postgres')('psql' '--username' 'postgres' 'postgres', _in=handle)
+    f = join(TEST_FOLDER, 'data', filename)
+    with open(f, 'r') as handle:
+        exec_container(version, 'postgres')('psql', '--username', 'postgres', 'postgres', _in=handle)
 
 def sql(statement):
     with psycopg2.connect(host='localhost', port=5432, user='postgres', dbname='postgres') as conn:
