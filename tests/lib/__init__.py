@@ -13,13 +13,13 @@ DOCKER_FOLDER=join(TEST_FOLDER, 'docker')
 
 def docker_compose(version):
     compose_file=join(DOCKER_FOLDER, version, 'docker-compose.yml')
-    return lambda *args, **kwargs: sh.docker_compose('-f', compose_file, *args, **kwargs)
+    return sh.docker_compose.bake('-f', compose_file)
 
 def exec_container(version, container):
     with io.StringIO() as buf:
         docker_compose(version)('ps', '-q', container, _out=buf)
         container=re.sub(r'\n.*', '', buf.getvalue())
-        return lambda *args: sh.docker('exec', '-i', container, *args)
+        return sh.docker.bake('exec', '-i', container)
 
 def wait_for(condition):
     for i in xrange(120):
