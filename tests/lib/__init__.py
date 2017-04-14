@@ -3,6 +3,7 @@ from os.path import abspath, dirname, join
 import sh
 import psycopg2
 import requests
+import time
 
 PROJECT_FOLDER=dirname(dirname(abspath(__file__)))
 DOCKER_FOLDER=join(PROJECT_FOLDER, 'docker')
@@ -10,14 +11,17 @@ DOCKER_FOLDER=join(PROJECT_FOLDER, 'docker')
 def docker_compose(version, *args):
     sh.docker_compose('-f', 'docker/{version}/docker-compose.yml'.format(version=version), *args)
 
-def test_pg():
-    def callback(cursor):
-        cursor.execute('select 1 + 1;')
-        return cursor.fetchone()[0] == 2
-    def error():
-        return False
+def wait_for(condition):
+    for i in xrange(120):
+        if condition():
+            return True
+        time.sleep(1)
 
-    return sql(callback, error)
+def test_pg():
+    try:
+        return sql('select 1 + 1;')[0][0] == 2
+    except Exception:
+        return False
 
 def test_es():
     try:
@@ -25,10 +29,8 @@ def test_es():
     except Exception:
         return False
 
-def sql(callback, error):
-    try:
-        with psycopg2.connect(host='localhost', port=5432, user='postgres', dbname='postgres') as conn:
-            with conn.cursor() as cursor:
-                return callback(cursor)
-    except Exception:
-        return error()
+def sql(statement):
+    with psycopg2.connect(host='localhost', port=5432, user='postgres', dbname='postgres') as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(statement)
+            return cursor.fetchall()
