@@ -1,15 +1,17 @@
 from os.path import abspath, dirname, join
 
-import sh
 import psycopg2
 import requests
+import sh
 import time
 
-PROJECT_FOLDER=dirname(dirname(abspath(__file__)))
-DOCKER_FOLDER=join(PROJECT_FOLDER, 'docker')
+PROJECT_FOLDER=dirname(dirname(dirname(abspath(__file__))))
+TEST_FOLDER=join(PROJECT_FOLDER, 'tests')
+DOCKER_FOLDER=join(TEST_FOLDER, 'docker')
 
 def docker_compose(version, *args):
-    sh.docker_compose('-f', 'docker/{version}/docker-compose.yml'.format(version=version), *args)
+    compose_file=join(DOCKER_FOLDER, version, 'docker-compose.yml')
+    sh.docker_compose('-f', compose_file, *args)
 
 def wait_for(condition):
     for i in xrange(120):
