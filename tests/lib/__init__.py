@@ -45,6 +45,13 @@ def load_sql_file(version, filename):
     with open(f, 'r') as handle:
         exec_container(version, 'postgres')('psql', '--username', 'postgres', 'postgres', _in=handle)
 
+def run_sql_test(version, filename):
+    f = join(TEST_FOLDER, 'test', filename)
+    with open(f, 'r') as handle:
+        with io.StringIO() as buf:
+            exec_container(version, 'postgres')('psql', '--username', 'postgres', '--tuples-only', '--quiet', 'postgres', _in=handle, _out=buf)
+            return buf.getvalue()
+
 def load_json_file(version, filename):
     f = join(TEST_FOLDER, 'data', filename)
     headers = {'Content-Type': 'application/x-ndjson'}
