@@ -11,7 +11,7 @@ def main(version):
 
     load_data(version)
 
-    print('Testing read...', end='')
+    print('Testing read...')
     result = lib.run_sql_test(version, 'read.sql').strip()
     if result == 't':
         print('PASS')
