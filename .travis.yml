@@ -1,14 +1,18 @@
 language: python
 
 install:
+    - pip install -r requirements.txt
     - pip install -r tests/requirements.txt
+    - python setup.py install
 
 services:
-  - docker
+  - postgresql
+  - elasticsearch
 
-before_script: ./tests/set-up.py "${PG_VERSION}"
+addons:
+  postgresql: $PG_VERSION
+
 script: ./tests/test.py "${PG_VERSION}"
-after_script: ./tests/tear-down.py "${PG_VERSION}"
 
 env:
   - PG_VERSION=9.2

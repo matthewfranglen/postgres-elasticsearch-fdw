@@ -12,44 +12,22 @@ PROJECT_FOLDER=dirname(dirname(dirname(abspath(__file__))))
 TEST_FOLDER=join(PROJECT_FOLDER, 'tests')
 DOCKER_FOLDER=join(TEST_FOLDER, 'docker')
 
-def docker_compose(version):
-    compose_file = join(DOCKER_FOLDER, version, 'docker-compose.yml')
-    return sh.docker_compose.bake('-f', compose_file)
-
-def exec_container(version, container):
-    container = container_name(version, container)
-    return sh.docker.bake('exec', '-i', container)
-
-def container_name(version, container):
-    with io.StringIO() as buf:
-        docker_compose(version)('ps', '-q', container, _out=buf)
-        return re.sub(r'\n.*', '', buf.getvalue())
-
-def container_port(version, container, port):
-    with io.StringIO() as buf:
-        docker_compose(version)('port', container, port, _out=buf)
-        host_and_port = re.sub(r'\n.*', '', buf.getvalue())
-        return re.sub(r'.*:', '', host_and_port)
-
 def wait_for(condition):
     for i in range(120):
         if condition():
             return True
         time.sleep(1)
 
-def pg_is_available(version):
-    port = container_port(version, 'postgres', 5432)
-
+def pg_is_available():
     def condition():
         try:
-            return sql('select 1 + 1;', port)[0][0] == 2
+            return sql('select 1 + 1;')[0][0] == 2
         except Exception:
             return False
     return condition
 
-def es_is_available(version):
-    port = container_port(version, 'elasticsearch', 9200)
-    url = 'http://localhost:{port}'.format(port=port)
+def es_is_available():
+    url = 'http://localhost:9200'
 
     def condition():
         try:
@@ -58,21 +36,20 @@ def es_is_available(version):
             return False
     return condition
 
-def load_sql_file(version, filename):
+def load_sql_file(filename):
     f = join(TEST_FOLDER, 'data', filename)
     with open(f, 'r') as handle:
-        exec_container(version, 'postgres')('psql', '--username', 'postgres', 'postgres', _in=handle)
+        sh.psql('--username', 'postgres', 'postgres', _in=handle)
 
-def run_sql_test(version, filename):
+def run_sql_test(filename):
     f = join(TEST_FOLDER, 'test', filename)
     with open(f, 'r') as handle:
         with io.StringIO() as buf:
-            exec_container(version, 'postgres')('psql', '--username', 'postgres', '--tuples-only', '--quiet', 'postgres', _in=handle, _out=buf)
+            sh.psql('--username', 'postgres', '--tuples-only', '--quiet', 'postgres', _in=handle, _out=buf)
             return buf.getvalue()
 
-def load_json_file(version, filename):
-    port = container_port(version, 'elasticsearch', 9200)
-    url = 'http://localhost:{port}/_bulk'.format(port=port)
+def load_json_file(filename):
+    url = 'http://localhost:9200/_bulk'
     f = join(TEST_FOLDER, 'data', filename)
     headers = {'Content-Type': 'application/x-ndjson'}
 
@@ -81,7 +58,7 @@ def load_json_file(version, filename):
         requests.post(url, headers=headers, data=body)
 
 def sql(statement, port):
-    with psycopg2.connect(host='localhost', port=port, user='postgres', dbname='postgres') as conn:
+    with psycopg2.connect(host='localhost', port=5432, user='postgres', dbname='postgres') as conn:
         with conn.cursor() as cursor:
             cursor.execute(statement)
             return cursor.fetchall()
