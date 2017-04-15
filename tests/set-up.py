@@ -13,9 +13,14 @@ if __name__ == "__main__":
 
     print('Starting testing environment for PostgreSQL {version}...'.format(version=version))
 
+    print('Stopping and Removing any old containers...')
     dc('stop')
     dc('rm', '--force')
+
+    print('Building new images...')
     dc('build')
+
+    print('Starting new containers...')
     dc('up', '-d')
 
     print('Testing environment started')
