@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import io
 import lib
 import sys
 
