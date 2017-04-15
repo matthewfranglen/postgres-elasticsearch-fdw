@@ -11,9 +11,6 @@ def main(version):
 
     load_data(version)
 
-    print('Showing container logs...')
-    lib.docker_compose(version)('logs')
-
     print('Testing read...')
     result = lib.run_sql_test(version, 'read.sql').strip()
     if result == 't':
@@ -34,6 +31,9 @@ def load_data(version):
 
     print('Loading Postgres data...')
     lib.load_sql_file(version, 'data.sql')
+
+    print('Showing container logs...')
+    lib.docker_compose(version)('logs')
 
     print('Waiting for Elastic Search...')
     lib.wait_for(lib.es_is_available(version))
