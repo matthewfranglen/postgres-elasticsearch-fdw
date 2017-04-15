@@ -33,7 +33,9 @@ def load_data(version):
     lib.load_sql_file(version, 'data.sql')
 
     print('Showing container logs...')
-    lib.docker_compose(version)('logs')
+    with io.StringIO() as buf:
+        lib.docker_compose(version)('logs', _out=buf)
+        print(buf.getvalue())
 
     print('Waiting for Elastic Search...')
     lib.wait_for(lib.es_is_available(version))
