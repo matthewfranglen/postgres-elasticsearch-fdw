@@ -23,7 +23,7 @@ def main(version):
 
 def load_data(version):
     print('Waiting for PostgreSQL...')
-    lib.wait_for(lib.pg_is_available)
+    lib.wait_for(lib.pg_is_available(version))
 
     print('Loading test data into PostgreSQL...')
     print('Loading schema...')
@@ -33,7 +33,7 @@ def load_data(version):
     lib.load_sql_file(version, 'data.sql')
 
     print('Waiting for Elastic Search...')
-    lib.wait_for(lib.es_is_available)
+    lib.wait_for(lib.es_is_available(version))
 
     print('Loading Elastic Search data...')
     lib.load_json_file(version, 'data.json')
