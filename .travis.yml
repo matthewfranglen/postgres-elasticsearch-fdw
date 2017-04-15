@@ -1,9 +1,11 @@
 language: python
 
 install:
-    - pip install -r requirements.txt
-    - pip install -r tests/requirements.txt
-    - python setup.py install
+  - sudo apt-get update -qq
+  - sudo apt-et install -qq "postgresql-${PG_VERSION}-python-multicorn"
+  - pip install -r requirements.txt
+  - pip install -r tests/requirements.txt
+  - python setup.py install
 
 services:
   - postgresql
