@@ -11,6 +11,9 @@ def main(version):
 
     load_data(version)
 
+    print('Showing container logs...')
+    lib.docker_compose(version)('logs')
+
     print('Testing read...')
     result = lib.run_sql_test(version, 'read.sql').strip()
     if result == 't':
