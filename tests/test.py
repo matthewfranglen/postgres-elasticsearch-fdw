@@ -33,13 +33,15 @@ def load_data(version):
     print('Loading Postgres data...')
     lib.load_sql_file(version, 'data.sql')
 
-    print('Showing container logs...')
-    with io.StringIO() as buf:
-        lib.docker_compose(version)('logs', _out=buf)
-        print(buf.getvalue())
-
-    print('Waiting for Elastic Search...')
-    lib.wait_for(lib.es_is_available(version))
+    try:
+        print('Waiting for Elastic Search...')
+        lib.wait_for(lib.es_is_available(version))
+    except Exception:
+        print('Showing container logs...')
+        with io.StringIO() as buf:
+            lib.docker_compose(version)('logs', 'elasticsearch', _out=buf)
+            print(buf.getvalue())
+        sys.exit(1)
 
     print('Loading Elastic Search data...')
     lib.load_json_file(version, 'data.json')
