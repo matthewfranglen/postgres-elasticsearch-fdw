@@ -1,10 +1,13 @@
+dist: trusty
+sudo: required
 language: python
 
 install:
+  - sudo sh -c 'echo "deb http://gb.archive.ubuntu.com/ubuntu/ xenial main restricted" >> /etc/apt/sources.list.d/xenial.list'
+  - sudo apt-get update -qq
+  - sudo apt-get install --yes postgresql-9.5-python-multicorn
   - pip install -r requirements.txt
   - pip install -r tests/requirements.txt
-  - sudo -H pip install pgxnclient
-  - sudo pgxn install multicorn
   - python setup.py install
 
 services:
@@ -12,9 +15,9 @@ services:
   - elasticsearch
 
 addons:
-  postgresql: "9.6"
+  postgresql: "9.5"
 
 script: ./tests/test.py "${PG_VERSION}"
 
 env:
-  - PG_VERSION=9.6
+  - PG_VERSION=9.5
