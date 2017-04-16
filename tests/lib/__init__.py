@@ -57,8 +57,8 @@ def load_json_file(filename):
         body = handle.read().encode(encoding='utf-8')
         requests.post(url, headers=headers, data=body)
 
-def sql(statement, port):
-    with psycopg2.connect(host='localhost', port=5432, user='postgres', dbname='postgres') as conn:
+def sql(statement):
+    with psycopg2.connect(user='postgres', dbname='postgres') as conn:
         with conn.cursor() as cursor:
             cursor.execute(statement)
             return cursor.fetchall()
