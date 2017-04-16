@@ -17,6 +17,9 @@ services:
 addons:
   postgresql: "9.5"
 
+python:
+  - "3.6"
+
 script: ./tests/test.py "${PG_VERSION}"
 
 env:
