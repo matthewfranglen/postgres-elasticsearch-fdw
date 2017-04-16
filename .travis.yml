@@ -12,7 +12,7 @@ services:
   - elasticsearch
 
 addons:
-  postgresql: $PG_VERSION
+  postgresql: "${PG_VERSION}"
 
 script: ./tests/test.py "${PG_VERSION}"
 
