@@ -3,8 +3,8 @@ language: python
 install:
   - pip install -r requirements.txt
   - pip install -r tests/requirements.txt
-  - pip install pgxnclient
-  - pgxn install multicorn
+  - sudo pip install pgxnclient
+  - sudo pgxn install multicorn
   - python setup.py install
 
 services:
