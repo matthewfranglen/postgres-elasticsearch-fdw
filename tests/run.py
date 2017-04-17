@@ -11,7 +11,7 @@ from lib.tear_down import tear_down
 from lib.tools import show_status
 
 def run_tests(version):
-    print('Testing PostgreSQL {version}'.format(version=version))
+    show_status('Testing PostgreSQL {version}'.format(version=version), newline=True)
 
     set_up(version)
     load_fixtures()
@@ -30,7 +30,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     result = all(list(run_tests(version) for version in args.version))
-    show_status('PASS' if result else 'FAIL')
-    print()
+    show_status('PASS' if result else 'FAIL', newline=True)
 
     sys.exit(0 if result else 1)
