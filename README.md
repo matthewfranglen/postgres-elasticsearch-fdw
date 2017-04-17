@@ -2,29 +2,36 @@ PostgreSQL Elastic Search foreign data wrapper
 ==============================================
 
 This allows you to index data in elastic search and then search it from
-postgres. This does not store the documents in elastic search.
+postgres. You can write as well as read.
 
-By using a foreign table to elastic search, which is paired with a normal table
-with triggers, it is possible to search the normal table using elastic search.
+SYNOPSIS
+--------
 
-Installation
-------------
+### Installation
 
-The configuration requirements for this can be found in the `Dockerfile` within
-this folder.
+This requires installation on the PostgreSQL server, and has dependencies.
+You can install the dependencies with:
 
-The fundamental requirements are:
+```
+sudo apt-get install postgresql-9.4-python-multicorn python python-pip
+sudo pip install elasticsearch
+```
 
- * Python >=2.7
- * elastic search
- * postgres >=9.2
- * python-multicorn for the postgres version
- * python-elasticsearch
+You should install the version of multicorn that is specific to your postgres
+version. The multicorn package is also only available from Ubuntu Xenial
+(16.04) onwards. If you cannot install multicorn in this way then you can use
+[pgxn](http://pgxnclient.projects.pgfoundry.org/) to install it.
 
-You can then install this wrapper by running `setup.py`.
+Once the dependencies are installed you can install the foreign data wrapper by
+cloning the repository and running the setup script:
 
-Usage
------
+```
+git clone https://github.com/matthewfranglen/postgres-elasticsearch-fdw.git pg-es-fdw
+cd pg-es-fdw
+python setup.py install
+```
+
+### Usage
 
 A running configuration for this can be found in the `docker-compose.yml`
 within this folder.
@@ -37,16 +44,7 @@ The basic steps are:
  * Populate the foreign table
  * Query the foreign table...
 
-The first insert into the table will create the index if it does not already
-exist. If you want to set the schema you should do it before using this wrapper.
-
-If the index does not exist then several types of operation on the table will
-fail.
-
-You can pair this with an existing table using triggers. An example of that is
-in the `sql/create-triggered-table.sql` file.
-
-### Load extension and Create server
+#### Load extension and Create server
 
 ```sql
 CREATE EXTENSION multicorn;
@@ -57,14 +55,16 @@ OPTIONS (
 );
 ```
 
-### Create the foreign table
+#### Create the foreign table
 
 ```sql
 CREATE FOREIGN TABLE articles_es
     (
         id BIGINT,
         title TEXT,
-        content TEXT
+        body TEXT,
+        query TEXT,
+        score NUMERIC
     )
 SERVER multicorn_es
 OPTIONS
@@ -72,12 +72,25 @@ OPTIONS
         host 'elasticsearch',
         port '9200',
         index 'article-index',
-        type 'article'
+        type 'article',
+        rowid_column 'id',
+        query_column 'query',
+        score_column 'score'
     )
 ;
 ```
 
-### Populate the foreign table
+This corresponds to an Elastic Search index which contains a `title` and `body`
+fields. The other fields have special meaning:
+
+ * The `id` field is mapped to the Elastic Search document id
+ * The `query` field accepts Elastic Search queries to filter the rows
+ * The `score` field returns the score for the document against the query
+
+These are configured using the `rowid_column`, `query_column` and
+`score_column` options. All of these are optional.
+
+#### Populate the foreign table
 
 ```sql
 INSERT INTO articles_es
@@ -94,7 +107,12 @@ VALUES
     );
 ```
 
-### Query the foreign table
+It is possible to write documents to Elastic Search using the foreign data
+wrapper. This feature was introduced in PostgreSQL 9.3.
+
+#### Query the foreign table
+
+To select all documents:
 
 ```sql
 SELECT
@@ -105,6 +123,23 @@ FROM
     articles_es
 ;
 ```
+
+To filter the documents using a query:
+
+```sql
+SELECT
+    id,
+    title,
+    content,
+    score
+FROM
+    articles_es
+WHERE
+    query = 'body:chess'
+;
+```
+
+This uses the [URI Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-uri-request.html) from Elastic Search.
 
 Caveats
 -------
