@@ -23,10 +23,8 @@ def run_tests(version):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Set up testing environment.')
-    parser.add_argument('version', help='PostgreSQL version')
+    parser.add_argument('version', nargs='+', help='PostgreSQL version')
     args = parser.parse_args()
 
-    version = args.version
-    result = run_tests(version)
-
+    result = all(run_tests(version) for version in args.version)
     sys.exit(0 if result else 1)
