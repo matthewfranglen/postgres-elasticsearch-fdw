@@ -12,5 +12,7 @@ if __name__ == '__main__':
         url = 'https://github.com/matthewfranglen/postgres-elasticsearch-fdw',
         download_url = 'https://github.com/matthewfranglen/postgres-elasticsearch-fdw/archive/0.3.1.zip',
         keywords = ['postgres', 'postgresql', 'elastic', 'elastic search', 'fdw'],
-        classifiers = []
+        install_requires=[
+            'elasticsearch',
+        ],
     )
