@@ -115,3 +115,41 @@ Unfortunately this is the case even for serializable isolation level transaction
 It would however be possible to check against Elastic Search version field and locking.
 
 Rollback is currently not supported.
+
+Tests
+-----
+
+There are end to end tests that use docker to create a PostgreSQL and Elastic
+Search database. These are then populated with data and tests are run against
+them.
+
+These require docker and docker-compose. These also require python packages
+which you can install with:
+
+```bash
+pip install -r tests/requirements.txt
+```
+
+You can then run the tests using `tests/run.py`, which takes the PostgreSQL
+version to test. The currently supported versions are 9.2 through to 9.6. You
+can pass multiple versions to test it against all of them:
+
+```bash
+➜ ./tests/run.py 9.2 9.3 9.4 9.5 9.6
+Testing PostgreSQL 9.2
+PostgreSQL 9.2: Test read - PASS
+PostgreSQL 9.2: Test query - PASS
+Testing PostgreSQL 9.3
+PostgreSQL 9.3: Test read - PASS
+PostgreSQL 9.3: Test query - PASS
+Testing PostgreSQL 9.4
+PostgreSQL 9.4: Test read - PASS
+PostgreSQL 9.4: Test query - PASS
+Testing PostgreSQL 9.5
+PostgreSQL 9.5: Test read - PASS
+PostgreSQL 9.5: Test query - PASS
+Testing PostgreSQL 9.6
+PostgreSQL 9.6: Test read - PASS
+PostgreSQL 9.6: Test query - PASS
+PASS
+```

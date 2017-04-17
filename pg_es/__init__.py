@@ -216,12 +216,6 @@ class ElasticsearchFDW(ForeignDataWrapper):
             None
         )
 
-    def _convert_response(self, data, columns, query):
-        return [
-            self._convert_response_row(row_data, columns, query)
-            for row_data in data['hits']['hits']
-        ]
-
     def _convert_response_row(self, row_data, columns, query):
         if query:
             # Postgres checks the query after too, so the query column needs to be present

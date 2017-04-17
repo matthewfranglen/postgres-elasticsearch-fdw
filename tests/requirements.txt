@@ -1,0 +1,3 @@
+sh
+psycopg2
+requests
