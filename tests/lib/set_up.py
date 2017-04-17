@@ -3,23 +3,24 @@
 import argparse
 
 from lib.docker_tools import docker_compose
+from lib.tools import show_status
 
 def set_up(version):
     dc = docker_compose(version)
 
-    print('Starting testing environment for PostgreSQL {version}...'.format(version=version))
+    show_status('Starting testing environment for PostgreSQL {version}...'.format(version=version))
 
-    print('Stopping and Removing any old containers...')
+    show_status('Stopping and Removing any old containers...')
     dc('stop')
     dc('rm', '--force')
 
-    print('Building new images...')
+    show_status('Building new images...')
     dc('build')
 
-    print('Starting new containers...')
+    show_status('Starting new containers...')
     dc('up', '-d')
 
-    print('Testing environment started')
+    show_status('Testing environment started')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Set up testing environment.')

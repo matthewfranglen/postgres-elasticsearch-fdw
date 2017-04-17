@@ -11,3 +11,16 @@ def wait_for(condition):
         if condition():
             return True
         time.sleep(1)
+
+LONGEST_MESSAGE=0
+def show_status(message):
+    global LONGEST_MESSAGE
+
+    print(message, end='')
+    LONGEST_MESSAGE = max(LONGEST_MESSAGE, len(message))
+    print(' ' * (LONGEST_MESSAGE - len(message)), end='\r')
+
+def show_result(version, name, success):
+    print('PostgreSQL {version}: Test {name} - {result}'.format(version=version, name=name, result='PASS' if success else 'FAIL'))
+
+    return success

@@ -3,15 +3,16 @@
 import argparse
 
 from lib.docker_tools import docker_compose
+from lib.tools import show_status
 
 def tear_down(version):
     dc = docker_compose(version)
 
-    print('Stopping testing environment for PostgreSQL {version}...'.format(version=version))
+    show_status('Stopping testing environment for PostgreSQL {version}...'.format(version=version))
 
     dc('down')
 
-    print('Testing environment stopped')
+    show_status('Testing environment stopped')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Set up testing environment.')

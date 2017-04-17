@@ -7,24 +7,24 @@ import sys
 from lib.tools import wait_for
 from lib.es_tools import load_json_file, es_is_available
 from lib.pg_tools import load_sql_file, pg_is_available
+from lib.tools import show_status
 
 def load_fixtures():
-    print('Loading fixtures')
+    show_status('Loading fixtures')
 
-    print('Waiting for PostgreSQL...')
+    show_status('Waiting for PostgreSQL...')
     wait_for(pg_is_available)
 
-    print('Loading test data into PostgreSQL...')
-    print('Loading schema...')
+    show_status('Loading PostgreSQL schema...')
     load_sql_file('schema.sql')
 
-    print('Loading Postgres data...')
+    show_status('Loading PostgreSQL data...')
     load_sql_file('data.sql')
 
-    print('Waiting for Elastic Search...')
+    show_status('Waiting for Elastic Search...')
     wait_for(es_is_available)
 
-    print('Loading Elastic Search data...')
+    show_status('Loading Elastic Search data...')
     load_json_file('data.json')
 
 if __name__ == "__main__":

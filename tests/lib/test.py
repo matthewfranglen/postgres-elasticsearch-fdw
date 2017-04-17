@@ -5,18 +5,15 @@ import io
 import sys
 
 from lib.pg_tools import run_sql_test
+from lib.tools import show_status, show_result
 
 def perform_tests(version):
     success = True
 
-    print('Testing PostgreSQL {version}...'.format(version=version))
+    show_status('Testing PostgreSQL {version}...'.format(version=version))
 
-    print('Testing read...')
-    result = run_sql_test('read.sql')
-    if result == 't':
-        print('PASS')
-    else:
-        print('FAIL')
+    show_status('Testing read...')
+    if not show_result(version, 'read', run_sql_test('read.sql')):
         success = False
 
     return success
