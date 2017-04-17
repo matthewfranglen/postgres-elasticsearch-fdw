@@ -3,8 +3,14 @@ from setuptools import setup
 
 if __name__ == '__main__':
     setup(
-        name='pg_es',
-        version='0.0.1',
-        license='Postgresql',
-        packages=['pg_es']
+        name = 'pg_es',
+        packages = ['pg_es'],
+        version = '0.3.1',
+        description = 'Connect PostgreSQL and Elastic Search with this Foreign Data Wrapper',
+        author = 'Matthew Franglen',
+        author_email = 'matthew@franglen.org',
+        url = 'https://github.com/matthewfranglen/postgres-elasticsearch-fdw',
+        download_url = 'https://github.com/matthewfranglen/postgres-elasticsearch-fdw/archive/0.3.1.zip',
+        keywords = ['postgres', 'postgresql', 'elastic', 'elastic search', 'fdw'],
+        classifiers = []
     )
