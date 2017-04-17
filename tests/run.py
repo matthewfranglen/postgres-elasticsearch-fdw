@@ -26,5 +26,5 @@ if __name__ == "__main__":
     parser.add_argument('version', nargs='+', help='PostgreSQL version')
     args = parser.parse_args()
 
-    result = all(run_tests(version) for version in args.version)
+    result = all(list(run_tests(version) for version in args.version))
     sys.exit(0 if result else 1)
