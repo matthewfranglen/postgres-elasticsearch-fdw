@@ -13,8 +13,3 @@ Need PGXN Entry
 ---------------
 
 https://pgxn.org/
-
-Need PyPI Entry
----------------
-
-http://peterdowns.com/posts/first-time-with-pypi.html
