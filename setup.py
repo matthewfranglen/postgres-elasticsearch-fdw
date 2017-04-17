@@ -3,8 +3,8 @@ from setuptools import setup
 
 if __name__ == '__main__':
     setup(
-        name = 'pg_es',
-        packages = ['pg_es'],
+        name = 'pg_es_fdw',
+        packages = ['pg_es_fdw'],
         version = '0.3.1',
         description = 'Connect PostgreSQL and Elastic Search with this Foreign Data Wrapper',
         author = 'Matthew Franglen',
