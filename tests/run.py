@@ -4,10 +4,9 @@ import argparse
 import sys
 import time
 
-from lib.set_up import set_up
+from lib.docker_compose_tools import set_up, tear_down
 from lib.load_fixtures import load_fixtures
 from lib.test import perform_tests
-from lib.tear_down import tear_down
 from lib.tools import show_status
 
 def run_tests(version):
@@ -25,7 +24,7 @@ def run_tests(version):
     return success
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Set up testing environment.')
+    parser = argparse.ArgumentParser(description='Perform end to end tests.')
     parser.add_argument('version', nargs='+', help='PostgreSQL version')
     args = parser.parse_args()
 

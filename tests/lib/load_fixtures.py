@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import argparse
 import io
 import sys
@@ -26,6 +24,3 @@ def load_fixtures():
 
     show_status('Loading Elastic Search data...')
     load_json_file('data.json')
-
-if __name__ == "__main__":
-    load_fixtures()
