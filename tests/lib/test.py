@@ -16,6 +16,10 @@ def perform_tests(version):
     if not show_result(version, 'read', run_sql_test('read.sql')):
         success = False
 
+    show_status('Testing query...')
+    if not show_result(version, 'query', run_sql_test('query.sql')):
+        success = False
+
     return success
 
 if __name__ == "__main__":
