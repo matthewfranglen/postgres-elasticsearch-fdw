@@ -1,14 +1,20 @@
 TODOs
 =====
 
-Need Tests / Travis
--------------------
+Need Travis
+-----------
 
-Should be able to build this on every version of postgres that multicorn supports.
+Travis was ruled out because Elastic Search seems to die during the tests.
 
-The test can be a script that uses docker-compose to run an end to end test.
+Need Documentation Site
+-----------------------
 
-Need Cleanup
-------------
+Need PGXN Entry
+---------------
 
-It's all sort of smushed together.
+https://pgxn.org/
+
+Need PyPI Entry
+---------------
+
+http://peterdowns.com/posts/first-time-with-pypi.html
