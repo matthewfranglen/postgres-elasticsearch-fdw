@@ -9,12 +9,11 @@ SYNOPSIS
 
 ### Installation
 
-This requires installation on the PostgreSQL server, and has dependencies.
+This requires installation on the PostgreSQL server, and has system level dependencies.
 You can install the dependencies with:
 
 ```
 sudo apt-get install postgresql-9.4-python-multicorn python python-pip
-sudo pip install elasticsearch
 ```
 
 You should install the version of multicorn that is specific to your postgres
@@ -22,13 +21,11 @@ version. The multicorn package is also only available from Ubuntu Xenial
 (16.04) onwards. If you cannot install multicorn in this way then you can use
 [pgxn](http://pgxnclient.projects.pgfoundry.org/) to install it.
 
-Once the dependencies are installed you can install the foreign data wrapper by
-cloning the repository and running the setup script:
+Once the dependencies are installed you can install the foreign data wrapper
+using pip:
 
 ```
-git clone https://github.com/matthewfranglen/postgres-elasticsearch-fdw.git pg-es-fdw
-cd pg-es-fdw
-python setup.py install
+sudo pip install pg_es_fdw
 ```
 
 ### Usage
