@@ -1,0 +1,12 @@
+#!/bin/bash
+# Runs all tests
+
+set -euo pipefail
+
+readonly COMMAND="$(readlink -f "${0}")"
+readonly BIN_FOLDER="$(dirname "${COMMAND}")"
+readonly PROJECT_FOLDER="$(dirname "${BIN_FOLDER}")"
+
+cd "${PROJECT_FOLDER}"
+
+tests/run.py 9.2 9.3 9.4 9.5 9.6
