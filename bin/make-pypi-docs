@@ -1,0 +1,12 @@
+#!/bin/bash
+# Converts the markdown readme to rst, suitable for PyPI
+
+set -euo pipefail
+
+readonly COMMAND="$(readlink -f "${0}")"
+readonly BIN_FOLDER="$(dirname "${COMMAND}")"
+readonly PROJECT_FOLDER="$(dirname "${BIN_FOLDER}")"
+
+cd "${PROJECT_FOLDER}"
+
+pandoc --from=markdown --to=rst --output=README.rst README.md
