@@ -1,6 +1,4 @@
-import argparse
-import io
-import sys
+""" Load fixtures into PostgreSQL and Elastic Search """
 
 from lib.tools import wait_for
 from lib.es_tools import load_json_file, es_is_available
@@ -8,6 +6,8 @@ from lib.pg_tools import load_sql_file, pg_is_available
 from lib.tools import show_status
 
 def load_fixtures():
+    """ Load fixtures into PostgreSQL and Elastic Search """
+
     show_status('Loading fixtures')
 
     show_status('Waiting for PostgreSQL...')
