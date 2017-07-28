@@ -1,30 +1,34 @@
-import argparse
+""" Handles docker compose """
 
 from lib.docker_tools import docker_compose
 from lib.tools import show_status
 
 def set_up(version):
-    dc = docker_compose(version)
+    """ Start containers """
+
+    compose = docker_compose(version)
 
     show_status('Starting testing environment for PostgreSQL {version}...'.format(version=version))
 
     show_status('Stopping and Removing any old containers...')
-    dc('stop')
-    dc('rm', '--force')
+    compose('stop')
+    compose('rm', '--force')
 
     show_status('Building new images...')
-    dc('build')
+    compose('build')
 
     show_status('Starting new containers...')
-    dc('up', '-d')
+    compose('up', '-d')
 
     show_status('Testing environment started')
 
 def tear_down(version):
-    dc = docker_compose(version)
+    """ Stop containers """
+
+    compose = docker_compose(version)
 
     show_status('Stopping testing environment for PostgreSQL {version}...'.format(version=version))
 
-    dc('down')
+    compose('down')
 
     show_status('Testing environment stopped')

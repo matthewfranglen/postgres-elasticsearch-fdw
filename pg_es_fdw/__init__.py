@@ -1,9 +1,9 @@
 """ Elastic Search foreign data wrapper """
-# pylint: disable=super-on-old-class, import-error, unexpected-keyword-arg, broad-except, line-too-long
+# pylint: disable=too-many-instance-attributes, super-on-old-class, import-error, unexpected-keyword-arg, broad-except, line-too-long
 
-import httplib
 import json
 import logging
+import httplib
 
 from elasticsearch import Elasticsearch
 

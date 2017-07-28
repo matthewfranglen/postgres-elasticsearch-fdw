@@ -94,7 +94,7 @@ INSERT INTO articles_es
     (
         id,
         title,
-        content
+        body
     )
 VALUES
     (
@@ -115,7 +115,7 @@ To select all documents:
 SELECT
     id,
     title,
-    content
+    body
 FROM
     articles_es
 ;
@@ -127,7 +127,7 @@ To filter the documents using a query:
 SELECT
     id,
     title,
-    content,
+    body,
     score
 FROM
     articles_es
