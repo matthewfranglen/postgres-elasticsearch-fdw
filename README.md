@@ -163,19 +163,25 @@ pip install -r tests/requirements.txt
 ```
 
 You can then run the tests using `tests/run.py`, which takes the PostgreSQL
-version to test. The currently supported versions are 9.4 through to 9.6. You
+version to test. The currently supported versions are 9.4 through to 11. You
 can pass multiple versions to test it against all of them:
 
 ```bash
-➜ ./tests/run.py 9.4 9.5 9.6
-Testing PostgreSQL 9.4
-PostgreSQL 9.4: Test read - PASS
-PostgreSQL 9.4: Test query - PASS
-Testing PostgreSQL 9.5
-PostgreSQL 9.5: Test read - PASS
-PostgreSQL 9.5: Test query - PASS
-Testing PostgreSQL 9.6
-PostgreSQL 9.6: Test read - PASS
-PostgreSQL 9.6: Test query - PASS
-PASS
+➜ pipenv run ./tests/run.py 9.4 9.5 9.6 10 11
+  Testing PostgreSQL 9.4
+  PostgreSQL 9.4: Test read - PASS
+  PostgreSQL 9.4: Test query - PASS
+  Testing PostgreSQL 9.5
+  PostgreSQL 9.5: Test read - PASS
+  PostgreSQL 9.5: Test query - PASS
+  Testing PostgreSQL 9.6
+  PostgreSQL 9.6: Test read - PASS
+  PostgreSQL 9.6: Test query - PASS
+  Testing PostgreSQL 10
+  PostgreSQL 10: Test read - PASS
+  PostgreSQL 10: Test query - PASS
+  Testing PostgreSQL 11
+  PostgreSQL 11: Test read - PASS
+  PostgreSQL 11: Test query - PASS
+  PASS
 ```
