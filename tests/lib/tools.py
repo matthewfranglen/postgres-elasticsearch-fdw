@@ -27,11 +27,14 @@ def show_status(message, newline=False):
     LONGEST_MESSAGE = max(LONGEST_MESSAGE, len(message))
     print(' ' * (LONGEST_MESSAGE - len(message)), end='\n' if newline else '\r')
 
-def show_result(version, name, success):
+def show_result(version, name, output):
     """ Show the result of a test """
+    success, error = output
 
     print('PostgreSQL {version}: Test {name} - {result}'.format(
         version=version, name=name, result='PASS' if success else 'FAIL'
     ))
+    if not success:
+        print(error)
 
     return success

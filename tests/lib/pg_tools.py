@@ -36,7 +36,7 @@ def run_sql_test(filename):
 
     path = join(TEST_FOLDER, 'test', filename)
     with open(path, 'r') as handle:
-        with io.StringIO() as buf:
+        with io.StringIO() as out, io.StringIO() as err:
             sh.psql(
                 'postgres',
                 '--no-psqlrc',
@@ -46,9 +46,10 @@ def run_sql_test(filename):
                 username='postgres',
                 quiet=True,
                 _in=handle,
-                _out=buf
+                _out=out,
+                _err=err
             )
-            return buf.getvalue().strip()
+            return out.getvalue().strip(), err.getvalue().strip()
 
 def sql(statement):
     """ Execute SQL statement """
