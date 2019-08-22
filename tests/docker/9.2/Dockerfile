@@ -5,7 +5,7 @@ RUN apt-get install --yes           \
     postgresql-9.2-python-multicorn \
     python                          \
     python-pip
-RUN pip install elasticsearch
+RUN pip install 'elasticsearch<6'
 
 COPY . /pg-es-fdw
 WORKDIR /pg-es-fdw

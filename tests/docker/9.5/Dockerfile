@@ -9,7 +9,7 @@ RUN apt-get install --yes --force-yes \
     python                            \
     python-dev                        \
     python-pip
-RUN pip install elasticsearch
+RUN pip install 'elasticsearch<6'
 
 COPY . /pg-es-fdw
 WORKDIR /pg-es-fdw
