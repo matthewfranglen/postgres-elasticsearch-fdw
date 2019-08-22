@@ -1,9 +1,14 @@
 FROM postgres:9.4
 
 RUN apt-get update
-RUN apt-get install --yes           \
-    postgresql-9.4-python-multicorn \
-    python                          \
+RUN apt-key update
+RUN apt-get install --yes --force-yes \
+    build-essential                   \
+    libffi-dev                        \
+    libssl-dev                        \
+    postgresql-9.4-python-multicorn   \
+    python                            \
+    python-dev                        \
     python-pip
 RUN pip install elasticsearch
 
