@@ -1,11 +1,11 @@
 """ Elastic Search foreign data wrapper """
-# pylint: disable=too-many-instance-attributes, super-on-old-class, import-error, unexpected-keyword-arg, broad-except, line-too-long
+# pylint: disable=too-many-instance-attributes, import-error, unexpected-keyword-arg, broad-except, line-too-long
 
 import json
 import logging
 import httplib
 
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, VERSION as ELASTICSEARCH_VERSION
 
 from multicorn import ForeignDataWrapper
 from multicorn.utils import log_to_postgres as log2pg
@@ -36,6 +36,15 @@ class ElasticsearchFDW(ForeignDataWrapper):
         self.scroll_duration = options.get("scroll_duration", "10m")
         self._rowid_column = options.get("rowid_column", "id")
 
+        if ELASTICSEARCH_VERSION[0] >= 7:
+            self.path = "/{index}".format(index=self.index)
+            self.arguments = {"index": self.index}
+        else:
+            self.path = "/{index}/{doc_type}".format(
+                index=self.index, doc_type=self.doc_type
+            )
+            self.arguments = {"index": self.index, "doc_type": self.doc_type}
+
         self.client = Elasticsearch(
             [
                 {
@@ -55,16 +64,14 @@ class ElasticsearchFDW(ForeignDataWrapper):
             query = self._get_query(quals)
 
             if query:
-                response = self.client.count(
-                    index=self.index, doc_type=self.doc_type, q=query
-                )
+                response = self.client.count(q=query, **self.arguments)
             else:
-                response = self.client.count(index=self.index, doc_type=self.doc_type)
+                response = self.client.count(**self.arguments)
             return (response["count"], len(columns) * 100)
         except Exception as exception:
             log2pg(
-                "COUNT for /{index}/{doc_type} failed: {exception}".format(
-                    index=self.index, doc_type=self.doc_type, exception=exception
+                "COUNT for {path} failed: {exception}".format(
+                    path=self.path, exception=exception
                 ),
                 logging.ERROR,
             )
@@ -78,18 +85,14 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
             if query:
                 response = self.client.search(
-                    index=self.index,
-                    doc_type=self.doc_type,
                     size=self.scroll_size,
                     scroll=self.scroll_duration,
                     q=query,
+                    **self.arguments
                 )
             else:
                 response = self.client.search(
-                    index=self.index,
-                    doc_type=self.doc_type,
-                    size=self.scroll_size,
-                    scroll=self.scroll_duration,
+                    size=self.scroll_size, scroll=self.scroll_duration, **self.arguments
                 )
 
             while True:
@@ -105,8 +108,8 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 )
         except Exception as exception:
             log2pg(
-                "SEARCH for /{index}/{doc_type} failed: {exception}".format(
-                    index=self.index, doc_type=self.doc_type, exception=exception
+                "SEARCH for {path} failed: {exception}".format(
+                    path=self.path, exception=exception
                 ),
                 logging.ERROR,
             )
@@ -129,17 +132,13 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
         try:
             response = self.client.index(
-                index=self.index,
-                doc_type=self.doc_type,
-                id=document_id,
-                body=new_values,
+                id=document_id, body=new_values, **self.arguments
             )
             return response
         except Exception as exception:
             log2pg(
-                "INDEX for /{index}/{doc_type}/{document_id} and document {document} failed: {exception}".format(
-                    index=self.index,
-                    doc_type=self.doc_type,
+                "INDEX for {path}/{document_id} and document {document} failed: {exception}".format(
+                    path=self.path,
                     document_id=document_id,
                     document=new_values,
                     exception=exception,
@@ -155,17 +154,13 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
         try:
             response = self.client.index(
-                index=self.index,
-                doc_type=self.doc_type,
-                id=document_id,
-                body=new_values,
+                id=document_id, body=new_values, **self.arguments
             )
             return response
         except Exception as exception:
             log2pg(
-                "INDEX for /{index}/{doc_type}/{document_id} and document {document} failed: {exception}".format(
-                    index=self.index,
-                    doc_type=self.doc_type,
+                "INDEX for {path}/{document_id} and document {document} failed: {exception}".format(
+                    path=self.path,
                     document_id=document_id,
                     document=new_values,
                     exception=exception,
@@ -178,17 +173,12 @@ class ElasticsearchFDW(ForeignDataWrapper):
         """ Delete documents from Elastic Search """
 
         try:
-            response = self.client.delete(
-                index=self.index, doc_type=self.doc_type, id=document_id
-            )
+            response = self.client.delete(id=document_id, **self.arguments)
             return response
         except Exception as exception:
             log2pg(
-                "DELETE for /{index}/{doc_type}/{document_id} failed: {exception}".format(
-                    index=self.index,
-                    doc_type=self.doc_type,
-                    document_id=document_id,
-                    exception=exception,
+                "DELETE for {path}/{document_id} failed: {exception}".format(
+                    path=self.path, document_id=document_id, exception=exception
                 ),
                 logging.ERROR,
             )
