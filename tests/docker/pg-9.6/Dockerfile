@@ -1,11 +1,13 @@
-FROM postgres:9.2
+FROM postgres:9.6
+
+ARG ES_PIP_VERSION
 
 RUN apt-get update
 RUN apt-get install --yes           \
-    postgresql-9.2-python-multicorn \
+    postgresql-9.6-python-multicorn \
     python                          \
     python-pip
-RUN pip install elasticsearch
+RUN pip install $ES_PIP_VERSION
 
 COPY . /pg-es-fdw
 WORKDIR /pg-es-fdw

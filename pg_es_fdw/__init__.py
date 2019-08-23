@@ -1,11 +1,11 @@
 """ Elastic Search foreign data wrapper """
-# pylint: disable=too-many-instance-attributes, super-on-old-class, import-error, unexpected-keyword-arg, broad-except, line-too-long
+# pylint: disable=too-many-instance-attributes, import-error, unexpected-keyword-arg, broad-except, line-too-long
 
 import json
 import logging
 import httplib
 
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, VERSION as ELASTICSEARCH_VERSION
 
 from multicorn import ForeignDataWrapper
 from multicorn.utils import log_to_postgres as log2pg
@@ -28,18 +28,31 @@ class ElasticsearchFDW(ForeignDataWrapper):
     def __init__(self, options, columns):
         super(ElasticsearchFDW, self).__init__(options, columns)
 
-        self.index = options.get('index', '')
-        self.doc_type = options.get('type', '')
-        self.query_column = options.get('query_column', None)
-        self.score_column = options.get('score_column', None)
-        self.scroll_size = int(options.get('scroll_size', '1000'))
-        self.scroll_duration = options.get('scroll_duration', '10m')
-        self._rowid_column = options.get('rowid_column', 'id')
+        self.index = options.get("index", "")
+        self.doc_type = options.get("type", "")
+        self.query_column = options.get("query_column", None)
+        self.score_column = options.get("score_column", None)
+        self.scroll_size = int(options.get("scroll_size", "1000"))
+        self.scroll_duration = options.get("scroll_duration", "10m")
+        self._rowid_column = options.get("rowid_column", "id")
 
-        self.client = Elasticsearch([{
-            'host': options.get('host', 'localhost'),
-            'port': int(options.get('port', '9200'))
-        }])
+        if ELASTICSEARCH_VERSION[0] >= 7:
+            self.path = "/{index}".format(index=self.index)
+            self.arguments = {"index": self.index}
+        else:
+            self.path = "/{index}/{doc_type}".format(
+                index=self.index, doc_type=self.doc_type
+            )
+            self.arguments = {"index": self.index, "doc_type": self.doc_type}
+
+        self.client = Elasticsearch(
+            [
+                {
+                    "host": options.get("host", "localhost"),
+                    "port": int(options.get("port", "9200")),
+                }
+            ]
+        )
 
         self.columns = columns
 
@@ -51,25 +64,16 @@ class ElasticsearchFDW(ForeignDataWrapper):
             query = self._get_query(quals)
 
             if query:
-                response = self.client.count(
-                    index=self.index,
-                    doc_type=self.doc_type,
-                    q=query
-                )
+                response = self.client.count(q=query, **self.arguments)
             else:
-                response = self.client.count(
-                    index=self.index,
-                    doc_type=self.doc_type
-                )
-            return (response['count'], len(columns) * 100)
+                response = self.client.count(**self.arguments)
+            return (response["count"], len(columns) * 100)
         except Exception as exception:
             log2pg(
-                "COUNT for /{index}/{doc_type} failed: {exception}".format(
-                    index=self.index,
-                    doc_type=self.doc_type,
-                    exception=exception
+                "COUNT for {path} failed: {exception}".format(
+                    path=self.path, exception=exception
                 ),
-                logging.ERROR
+                logging.ERROR,
             )
             return (0, 0)
 
@@ -81,40 +85,33 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
             if query:
                 response = self.client.search(
-                    index=self.index,
-                    doc_type=self.doc_type,
                     size=self.scroll_size,
                     scroll=self.scroll_duration,
-                    q=query
+                    q=query,
+                    **self.arguments
                 )
             else:
                 response = self.client.search(
-                    index=self.index,
-                    doc_type=self.doc_type,
-                    size=self.scroll_size,
-                    scroll=self.scroll_duration
+                    size=self.scroll_size, scroll=self.scroll_duration, **self.arguments
                 )
 
             while True:
-                scroll_id = response['_scroll_id']
+                scroll_id = response["_scroll_id"]
 
-                for result in response['hits']['hits']:
+                for result in response["hits"]["hits"]:
                     yield self._convert_response_row(result, columns, query)
 
-                if len(response['hits']['hits']) < self.scroll_size:
+                if len(response["hits"]["hits"]) < self.scroll_size:
                     return
                 response = self.client.scroll(
-                    scroll_id=scroll_id,
-                    scroll=self.scroll_duration
+                    scroll_id=scroll_id, scroll=self.scroll_duration
                 )
         except Exception as exception:
             log2pg(
-                "SEARCH for /{index}/{doc_type} failed: {exception}".format(
-                    index=self.index,
-                    doc_type=self.doc_type,
-                    exception=exception
+                "SEARCH for {path} failed: {exception}".format(
+                    path=self.path, exception=exception
                 ),
-                logging.ERROR
+                logging.ERROR,
             )
             return
 
@@ -124,10 +121,9 @@ class ElasticsearchFDW(ForeignDataWrapper):
         if self.rowid_column not in new_values:
             log2pg(
                 'INSERT requires "{rowid}" column. Missing in: {values}'.format(
-                    rowid=self.rowid_column,
-                    values=new_values
+                    rowid=self.rowid_column, values=new_values
                 ),
-                logging.ERROR
+                logging.ERROR,
             )
             return (0, 0)
 
@@ -136,22 +132,18 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
         try:
             response = self.client.index(
-                index=self.index,
-                doc_type=self.doc_type,
-                id=document_id,
-                body=new_values
+                id=document_id, body=new_values, **self.arguments
             )
             return response
         except Exception as exception:
             log2pg(
-                "INDEX for /{index}/{doc_type}/{document_id} and document {document} failed: {exception}".format(
-                    index=self.index,
-                    doc_type=self.doc_type,
+                "INDEX for {path}/{document_id} and document {document} failed: {exception}".format(
+                    path=self.path,
                     document_id=document_id,
                     document=new_values,
-                    exception=exception
+                    exception=exception,
                 ),
-                logging.ERROR
+                logging.ERROR,
             )
             return (0, 0)
 
@@ -162,22 +154,18 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
         try:
             response = self.client.index(
-                index=self.index,
-                doc_type=self.doc_type,
-                id=document_id,
-                body=new_values
+                id=document_id, body=new_values, **self.arguments
             )
             return response
         except Exception as exception:
             log2pg(
-                "INDEX for /{index}/{doc_type}/{document_id} and document {document} failed: {exception}".format(
-                    index=self.index,
-                    doc_type=self.doc_type,
+                "INDEX for {path}/{document_id} and document {document} failed: {exception}".format(
+                    path=self.path,
                     document_id=document_id,
                     document=new_values,
-                    exception=exception
+                    exception=exception,
                 ),
-                logging.ERROR
+                logging.ERROR,
             )
             return (0, 0)
 
@@ -185,21 +173,14 @@ class ElasticsearchFDW(ForeignDataWrapper):
         """ Delete documents from Elastic Search """
 
         try:
-            response = self.client.delete(
-                index=self.index,
-                doc_type=self.doc_type,
-                id=document_id
-            )
+            response = self.client.delete(id=document_id, **self.arguments)
             return response
         except Exception as exception:
             log2pg(
-                "DELETE for /{index}/{doc_type}/{document_id} failed: {exception}".format(
-                    index=self.index,
-                    doc_type=self.doc_type,
-                    document_id=document_id,
-                    exception=exception
+                "DELETE for {path}/{document_id} failed: {exception}".format(
+                    path=self.path, document_id=document_id, exception=exception
                 ),
-                logging.ERROR
+                logging.ERROR,
             )
             return (0, 0)
 
@@ -213,7 +194,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 for qualifier in quals
                 if qualifier.field_name == self.query_column
             ),
-            None
+            None,
         )
 
     def _convert_response_row(self, row_data, columns, query):
@@ -223,22 +204,23 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 [
                     (column, self._convert_response_column(column, row_data))
                     for column in columns
-                    if column in row_data['_source'] or column == self.rowid_column or column == self.score_column
+                    if column in row_data["_source"]
+                    or column == self.rowid_column
+                    or column == self.score_column
                 ]
-                +
-                [
-                    (self.query_column, query)
-                ]
+                + [(self.query_column, query)]
             )
         return {
             column: self._convert_response_column(column, row_data)
             for column in columns
-            if column in row_data['_source'] or column == self.rowid_column or column == self.score_column
+            if column in row_data["_source"]
+            or column == self.rowid_column
+            or column == self.score_column
         }
 
     def _convert_response_column(self, column, row_data):
         if column == self.rowid_column:
-            return row_data['_id']
+            return row_data["_id"]
         if column == self.score_column:
-            return row_data['_score']
-        return row_data['_source'][column]
+            return row_data["_score"]
+        return row_data["_source"][column]

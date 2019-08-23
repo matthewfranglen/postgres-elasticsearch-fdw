@@ -1,11 +1,27 @@
 PostgreSQL Elastic Search foreign data wrapper
 ==============================================
 
-This allows you to index data in elastic search and then search it from
-postgres. You can write as well as read.
+This allows you to index data in Elastic Search and then search it from
+PostgreSQL. You can write as well as read.
 
 SYNOPSIS
 --------
+
+### Supported Versions
+
+| Elastic Search | Dependency Installation Command |
+|----------------|---------------------------------|
+| 5 | `sudo pip install "elasticsearch>=5,<6"` |
+| 6 | `sudo pip install "elasticsearch>=6,<7"` |
+| 7 | `sudo pip install "elasticsearch>=7,<8"` |
+
+| PostgreSQL | Dependency Installation Command |
+|------------|---------------------------------|
+| 9.4 | `sudo apt-get install postgresql-9.4-python-multicorn` |
+| 9.5 | `sudo apt-get install postgresql-9.5-python-multicorn` |
+| 9.6 | `sudo apt-get install postgresql-9.6-python-multicorn` |
+| 10 | `sudo apt-get install postgresql-10-python-multicorn` |
+| 11 | `sudo apt-get install postgresql-11-python-multicorn` |
 
 ### Installation
 
@@ -13,13 +29,19 @@ This requires installation on the PostgreSQL server, and has system level depend
 You can install the dependencies with:
 
 ```
-sudo apt-get install postgresql-9.4-python-multicorn python python-pip
+sudo apt-get install python python-pip
 ```
 
 You should install the version of multicorn that is specific to your postgres
-version. The multicorn package is also only available from Ubuntu Xenial
-(16.04) onwards. If you cannot install multicorn in this way then you can use
+version. See the table in _Supported Versions_ for installation commands. The
+multicorn package is also only available from Ubuntu Xenial (16.04) onwards. If
+you cannot install multicorn in this way then you can use
 [pgxn](http://pgxnclient.projects.pgfoundry.org/) to install it.
+
+This uses the Elastic Search client which has release versions that correspond
+to the major version of the Elastic Search server. You should install the
+`elasticsearch` dependency separately. See the table in _Supported Versions_
+for installation commands.
 
 Once the dependencies are installed you can install the foreign data wrapper
 using pip:
@@ -76,6 +98,9 @@ OPTIONS
     )
 ;
 ```
+
+Elastic Search 7 and greater does not require the `type` option, which
+corresponds to the `doc_type` used in prior versions of Elastic Search.
 
 This corresponds to an Elastic Search index which contains a `title` and `body`
 fields. The other fields have special meaning:
@@ -162,26 +187,79 @@ which you can install with:
 pip install -r tests/requirements.txt
 ```
 
-You can then run the tests using `tests/run.py`, which takes the PostgreSQL
-version to test. The currently supported versions are 9.2 through to 9.6. You
-can pass multiple versions to test it against all of them:
+You can then run the tests using `tests/run.py`.  This takes the PostgreSQL
+version(s) to test using the `--pg` argument and the Elastic Search versions to
+test with the `--es` argument.  The currently supported versions of PostgreSQL
+are 9.4 through to 11. The currently supported versions of Elastic Search are 5
+and 6. You can pass multiple versions to test it against all of them:
 
 ```bash
-➜ ./tests/run.py 9.2 9.3 9.4 9.5 9.6
-Testing PostgreSQL 9.2
-PostgreSQL 9.2: Test read - PASS
-PostgreSQL 9.2: Test query - PASS
-Testing PostgreSQL 9.3
-PostgreSQL 9.3: Test read - PASS
-PostgreSQL 9.3: Test query - PASS
-Testing PostgreSQL 9.4
-PostgreSQL 9.4: Test read - PASS
-PostgreSQL 9.4: Test query - PASS
-Testing PostgreSQL 9.5
-PostgreSQL 9.5: Test read - PASS
-PostgreSQL 9.5: Test query - PASS
-Testing PostgreSQL 9.6
-PostgreSQL 9.6: Test read - PASS
-PostgreSQL 9.6: Test query - PASS
+➜ pipenv run ./tests/run.py --pg 9.4 9.5 9.6 10 11 --es 5 6 7
+Testing PostgreSQL 9.4 with Elasticsearch 5
+PostgreSQL 9.4 with Elasticsearch 5: Test read - PASS
+PostgreSQL 9.4 with Elasticsearch 5: Test query - PASS
+Testing PostgreSQL 9.4 with Elasticsearch 6
+PostgreSQL 9.4 with Elasticsearch 6: Test read - PASS
+PostgreSQL 9.4 with Elasticsearch 6: Test query - PASS
+Testing PostgreSQL 9.4 with Elasticsearch 7
+PostgreSQL 9.4 with Elasticsearch 7: Test read - PASS
+PostgreSQL 9.4 with Elasticsearch 7: Test query - PASS
+Testing PostgreSQL 9.5 with Elasticsearch 5
+PostgreSQL 9.5 with Elasticsearch 5: Test read - PASS
+PostgreSQL 9.5 with Elasticsearch 5: Test query - PASS
+Testing PostgreSQL 9.5 with Elasticsearch 6
+PostgreSQL 9.5 with Elasticsearch 6: Test read - PASS
+PostgreSQL 9.5 with Elasticsearch 6: Test query - PASS
+Testing PostgreSQL 9.5 with Elasticsearch 7
+PostgreSQL 9.5 with Elasticsearch 7: Test read - PASS
+PostgreSQL 9.5 with Elasticsearch 7: Test query - PASS
+Testing PostgreSQL 9.6 with Elasticsearch 5
+PostgreSQL 9.6 with Elasticsearch 5: Test read - PASS
+PostgreSQL 9.6 with Elasticsearch 5: Test query - PASS
+Testing PostgreSQL 9.6 with Elasticsearch 6
+PostgreSQL 9.6 with Elasticsearch 6: Test read - PASS
+PostgreSQL 9.6 with Elasticsearch 6: Test query - PASS
+Testing PostgreSQL 9.6 with Elasticsearch 7
+PostgreSQL 9.6 with Elasticsearch 7: Test read - PASS
+PostgreSQL 9.6 with Elasticsearch 7: Test query - PASS
+Testing PostgreSQL 10 with Elasticsearch 5
+PostgreSQL 10 with Elasticsearch 5: Test read - PASS
+PostgreSQL 10 with Elasticsearch 5: Test query - PASS
+Testing PostgreSQL 10 with Elasticsearch 6
+PostgreSQL 10 with Elasticsearch 6: Test read - PASS
+PostgreSQL 10 with Elasticsearch 6: Test query - PASS
+Testing PostgreSQL 10 with Elasticsearch 7
+PostgreSQL 10 with Elasticsearch 7: Test read - PASS
+PostgreSQL 10 with Elasticsearch 7: Test query - PASS
+Testing PostgreSQL 11 with Elasticsearch 5
+PostgreSQL 11 with Elasticsearch 5: Test read - PASS
+PostgreSQL 11 with Elasticsearch 5: Test query - PASS
+Testing PostgreSQL 11 with Elasticsearch 6
+PostgreSQL 11 with Elasticsearch 6: Test read - PASS
+PostgreSQL 11 with Elasticsearch 6: Test query - PASS
+Testing PostgreSQL 11 with Elasticsearch 7
+PostgreSQL 11 with Elasticsearch 7: Test read - PASS
+PostgreSQL 11 with Elasticsearch 7: Test query - PASS
 PASS
 ```
+
+### Test Failure Messages
+
+```
+Error starting userland proxy: listen tcp 0.0.0.0:5432: bind: address already in use
+```
+You are already running something that listens to 5432.
+Try stopping your running postgres server:
+```
+sudo /etc/init.d/postgresql stop
+```
+
+```
+max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+```
+Your system does not have the appropriate limits in place to run a production ready instance of elasticsearch.
+Try increasing it:
+```
+sudo sysctl -w vm.max_map_count=262144
+```
+This setting will revert after a reboot.

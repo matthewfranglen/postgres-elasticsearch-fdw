@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  postgres:
+    build:
+      dockerfile: ./tests/docker/pg-10/Dockerfile
+    image: pg-es-fdw:pg-10-es-${ES_VERSION}
+    container_name: pg-10
