@@ -4,6 +4,7 @@
 from os.path import join
 
 import io
+import os
 import re
 import sh
 
@@ -20,8 +21,16 @@ def docker_compose(pg_version, es_version):
     es_compose_file = join(
         DOCKER_FOLDER, "es-{version}".format(version=es_version), "docker-compose.yml"
     )
+    new_env = os.environ.copy()
+    new_env["ES_VERSION"] = es_version
     return sh.docker_compose.bake(
-        "-f", base_compose_file, "-f", pg_compose_file, "-f", es_compose_file
+        "-f",
+        base_compose_file,
+        "-f",
+        pg_compose_file,
+        "-f",
+        es_compose_file,
+        _env=new_env,
     )
 
 
