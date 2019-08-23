@@ -1,5 +1,7 @@
 FROM postgres:9.5
 
+ARG ES_PIP_VERSION
+
 RUN apt-get update
 RUN apt-get install --yes --force-yes \
     build-essential                   \
@@ -9,7 +11,7 @@ RUN apt-get install --yes --force-yes \
     python                            \
     python-dev                        \
     python-pip
-RUN pip install 'elasticsearch<6'
+RUN pip install $ES_PIP_VERSION
 
 COPY . /pg-es-fdw
 WORKDIR /pg-es-fdw

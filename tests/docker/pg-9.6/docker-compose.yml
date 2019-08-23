@@ -1,0 +1,7 @@
+version: '3'
+
+services:
+  postgres:
+    build:
+      dockerfile: ./tests/docker/pg-9.6/Dockerfile
+    container_name: pg-9.6

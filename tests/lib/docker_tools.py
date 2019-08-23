@@ -10,11 +10,19 @@ import sh
 from .tools import DOCKER_FOLDER
 
 
-def docker_compose(version):
+def docker_compose(pg_version, es_version):
     """ Wrapper around the docker compose command """
 
-    compose_file = join(DOCKER_FOLDER, version, "docker-compose.yml")
-    return sh.docker_compose.bake("-f", compose_file)
+    base_compose_file = join(DOCKER_FOLDER, "docker-compose.yml")
+    pg_compose_file = join(
+        DOCKER_FOLDER, "pg-{version}".format(version=pg_version), "docker-compose.yml"
+    )
+    es_compose_file = join(
+        DOCKER_FOLDER, "es-{version}".format(version=es_version), "docker-compose.yml"
+    )
+    return sh.docker_compose.bake(
+        "-f", base_compose_file, "-f", pg_compose_file, "-f", es_compose_file
+    )
 
 
 def exec_container(version, container):

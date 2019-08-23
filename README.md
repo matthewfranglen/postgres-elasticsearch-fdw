@@ -162,26 +162,45 @@ which you can install with:
 pip install -r tests/requirements.txt
 ```
 
-You can then run the tests using `tests/run.py`, which takes the PostgreSQL
-version to test. The currently supported versions are 9.4 through to 11. You
-can pass multiple versions to test it against all of them:
+You can then run the tests using `tests/run.py`.  This takes the PostgreSQL
+version(s) to test using the `--pg` argument and the Elastic Search versions to
+test with the `--es` argument.  The currently supported versions of PostgreSQL
+are 9.4 through to 11. The currently supported versions of Elastic Search are 5
+and 6. You can pass multiple versions to test it against all of them:
 
 ```bash
-➜ pipenv run ./tests/run.py 9.4 9.5 9.6 10 11
-  Testing PostgreSQL 9.4
-  PostgreSQL 9.4: Test read - PASS
-  PostgreSQL 9.4: Test query - PASS
-  Testing PostgreSQL 9.5
-  PostgreSQL 9.5: Test read - PASS
-  PostgreSQL 9.5: Test query - PASS
-  Testing PostgreSQL 9.6
-  PostgreSQL 9.6: Test read - PASS
-  PostgreSQL 9.6: Test query - PASS
-  Testing PostgreSQL 10
-  PostgreSQL 10: Test read - PASS
-  PostgreSQL 10: Test query - PASS
-  Testing PostgreSQL 11
-  PostgreSQL 11: Test read - PASS
-  PostgreSQL 11: Test query - PASS
-  PASS
+➜ pipenv run ./tests/run.py --pg 9.4 9.5 9.6 10 11 --es 5 6
+/home/matthew/.local/share/virtualenvs/pg-es-fdw-vGGoi2Ew/lib/python3.7/site-packages/requests/__init__.py:91: RequestsDependencyWarning: urllib3 (1.25.3) or chardet (3.0.4) doesn't match a supported version!
+  RequestsDependencyWarning)
+Testing PostgreSQL 9.4 with Elasticsearch 5
+PostgreSQL 9.4 with Elasticsearch 5: Test read - PASS
+PostgreSQL 9.4 with Elasticsearch 5: Test query - PASS
+Testing PostgreSQL 9.4 with Elasticsearch 6
+PostgreSQL 9.4 with Elasticsearch 6: Test read - PASS
+PostgreSQL 9.4 with Elasticsearch 6: Test query - PASS
+Testing PostgreSQL 9.5 with Elasticsearch 5
+PostgreSQL 9.5 with Elasticsearch 5: Test read - PASS
+PostgreSQL 9.5 with Elasticsearch 5: Test query - PASS
+Testing PostgreSQL 9.5 with Elasticsearch 6
+PostgreSQL 9.5 with Elasticsearch 6: Test read - PASS
+PostgreSQL 9.5 with Elasticsearch 6: Test query - PASS
+Testing PostgreSQL 9.6 with Elasticsearch 5
+PostgreSQL 9.6 with Elasticsearch 5: Test read - PASS
+PostgreSQL 9.6 with Elasticsearch 5: Test query - PASS
+Testing PostgreSQL 9.6 with Elasticsearch 6
+PostgreSQL 9.6 with Elasticsearch 6: Test read - PASS
+PostgreSQL 9.6 with Elasticsearch 6: Test query - PASS
+Testing PostgreSQL 10 with Elasticsearch 5
+PostgreSQL 10 with Elasticsearch 5: Test read - PASS
+PostgreSQL 10 with Elasticsearch 5: Test query - PASS
+Testing PostgreSQL 10 with Elasticsearch 6
+PostgreSQL 10 with Elasticsearch 6: Test read - PASS
+PostgreSQL 10 with Elasticsearch 6: Test query - PASS
+Testing PostgreSQL 11 with Elasticsearch 5
+PostgreSQL 11 with Elasticsearch 5: Test read - PASS
+PostgreSQL 11 with Elasticsearch 5: Test query - PASS
+Testing PostgreSQL 11 with Elasticsearch 6
+PostgreSQL 11 with Elasticsearch 6: Test read - PASS
+PostgreSQL 11 with Elasticsearch 6: Test query - PASS
+PASS
 ```

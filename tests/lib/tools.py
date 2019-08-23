@@ -17,6 +17,7 @@ def wait_for(condition):
         if condition():
             return True
         time.sleep(1)
+    return False
 
 
 LONGEST_MESSAGE = 0
@@ -32,13 +33,16 @@ def show_status(message, newline=False):
     print(" " * (LONGEST_MESSAGE - len(message)), end="\n" if newline else "\r")
 
 
-def show_result(version, name, output):
+def show_result(pg_version, es_version, name, output):
     """ Show the result of a test """
     success, error = output
 
     print(
-        "PostgreSQL {version}: Test {name} - {result}".format(
-            version=version, name=name, result="PASS" if success else "FAIL"
+        "PostgreSQL {pg_version} with Elasticsearch {es_version}: Test {name} - {result}".format(
+            pg_version=pg_version,
+            es_version=es_version,
+            name=name,
+            result="PASS" if success else "FAIL",
         )
     )
     if not success:

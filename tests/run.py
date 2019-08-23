@@ -15,28 +15,38 @@ def main():
     """ Runs the tests """
 
     parser = argparse.ArgumentParser(description="Perform end to end tests.")
-    parser.add_argument("version", nargs="+", help="PostgreSQL version")
+    parser.add_argument("--pg", nargs="+", help="PostgreSQL version")
+    parser.add_argument("--es", nargs="+", help="Elasticsearch version")
     args = parser.parse_args()
 
-    result = all(list(run_tests(version) for version in args.version))
+    result = all(
+        run_tests(pg_version, es_version)
+        for pg_version in args.pg
+        for es_version in args.es
+    )
     show_status("PASS" if result else "FAIL", newline=True)
 
     sys.exit(0 if result else 1)
 
 
-def run_tests(version):
+def run_tests(pg_version, es_version):
     """ Runs the tests """
 
-    show_status("Testing PostgreSQL {version}".format(version=version), newline=True)
+    show_status(
+        "Testing PostgreSQL {pg_version} with Elasticsearch {es_version}".format(
+            pg_version=pg_version, es_version=es_version
+        ),
+        newline=True,
+    )
 
-    set_up(version)
+    set_up(pg_version, es_version)
     load_fixtures()
 
     time.sleep(10)
 
-    success = perform_tests(version)
+    success = perform_tests(pg_version, es_version)
 
-    tear_down(version)
+    tear_down(pg_version, es_version)
 
     return success
 
