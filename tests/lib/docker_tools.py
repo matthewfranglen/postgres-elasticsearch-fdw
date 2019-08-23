@@ -1,10 +1,10 @@
 """ Commands for interacting with docker """
 # pylint: disable=no-member
 
+import os
 from os.path import join
 
 import io
-import os
 import re
 import sh
 
