@@ -51,7 +51,8 @@ class ElasticsearchFDW(ForeignDataWrapper):
                     "host": options.get("host", "localhost"),
                     "port": int(options.get("port", "9200")),
                 }
-            ]
+            ],
+            timeout=int(options.get("timeout", "10")),
         )
 
         self.columns = columns
