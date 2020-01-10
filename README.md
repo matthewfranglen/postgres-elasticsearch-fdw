@@ -94,7 +94,8 @@ OPTIONS
         type 'article',
         rowid_column 'id',
         query_column 'query',
-        score_column 'score'
+        score_column 'score',
+        timeout '20'
     )
 ;
 ```
@@ -108,9 +109,10 @@ fields. The other fields have special meaning:
  * The `id` field is mapped to the Elastic Search document id
  * The `query` field accepts Elastic Search queries to filter the rows
  * The `score` field returns the score for the document against the query
+ * The `timeout` field specifies the connection timeout in seconds
 
-These are configured using the `rowid_column`, `query_column` and
-`score_column` options. All of these are optional.
+These are configured using the `rowid_column`, `query_column`,
+`score_column` and `timeout` options. All of these are optional.
 
 #### Populate the foreign table
 
