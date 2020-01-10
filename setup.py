@@ -1,7 +1,11 @@
 """ Install file for Postgres Elasticsearch Foreign Data Wrapper """
 # pylint: disable=line-too-long
-from pathlib import Path
+from os.path import dirname, join
 from setuptools import setup
+
+README_FILE = join(dirname(__file__), "README.md")
+with open(README_FILE, "r") as handle:
+    LONG_DESCRIPTION = handle.read()
 
 if __name__ == "__main__":
     setup(
@@ -9,7 +13,7 @@ if __name__ == "__main__":
         packages=["pg_es_fdw"],
         version="0.5.1",
         description="Connect PostgreSQL and Elastic Search with this Foreign Data Wrapper",
-        long_description=(Path(__file__).parent / "README.md").read_text(),
+        long_description=LONG_DESCRIPTION,
         long_description_content_type="text/markdown",
         author="Matthew Franglen",
         author_email="matthew@franglen.org",
