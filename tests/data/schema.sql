@@ -30,7 +30,8 @@ OPTIONS
         type 'article',
         rowid_column 'id',
         query_column 'query',
-        score_column 'score'
+        score_column 'score',
+        timeout '20'
     )
 ;
 
