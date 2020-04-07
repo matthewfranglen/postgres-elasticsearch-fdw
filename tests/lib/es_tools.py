@@ -29,4 +29,4 @@ def load_json_file(filename):
 
     with open(path, "r") as handle:
         body = handle.read().encode(encoding="utf-8")
-        requests.post(url, headers=headers, data=body)
+        return requests.post(url, headers=headers, data=body)
