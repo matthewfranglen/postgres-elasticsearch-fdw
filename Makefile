@@ -7,7 +7,8 @@
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 PROJECT_NAME = pg_es_fdw
 
-DEP_PROJECT_PYTHON = .make/pipfile
+DEP_PROJECT_PYTHON = .make/poetry
+POETRY_VENV = $(shell poetry env info -p)
 
 #################################################################################
 # COMMANDS                                                                      #
@@ -18,7 +19,9 @@ requirements : $(DEP_PROJECT_PYTHON)
 
 ## Completely reset environment
 purge : clean
-	pipenv --rm
+ifneq ($(POETRY_VENV),)
+	poetry env remove $(shell basename $(POETRY_VENV))
+endif
 	if [ -e .make ]; then rm -rf .make; fi
 
 ## Delete all compiled Python files
@@ -28,20 +31,20 @@ clean :
 
 ## Format Python code
 format : $(DEP_PROJECT_PYTHON)
-	pipenv run black pg_es_fdw tests
+	poetry run black pg_es_fdw tests
 
 ## Run Tests
-test :
-	tests/run.py --pg 9.4 9.5 9.6 10 11 --es 5 6 7
+test : $(DEP_PROJECT_PYTHON)
+	poetry run tests/run.py --pg 9.4 9.5 9.6 10 11 --es 5 6 7
 
 ## Deploy to pypi
 deploy : $(DEP_PROJECT_PYTHON)
 	rm dist/*
-	pipenv run python setup.py bdist_wheel --universal
-	pipenv run twine upload dist/*
+	poetry run python setup.py bdist_wheel --universal
+	poetry run twine upload dist/*
 
-$(DEP_PROJECT_PYTHON) : Pipfile
-	pipenv install --dev
+$(DEP_PROJECT_PYTHON) : pyproject.toml
+	poetry install
 	if [ ! -e .make ]; then mkdir .make; fi
 	touch $(DEP_PROJECT_PYTHON)
 
