@@ -37,11 +37,9 @@ format : $(DEP_PROJECT_PYTHON)
 test : $(DEP_PROJECT_PYTHON)
 	poetry run tests/run.py --pg 9.4 9.5 9.6 10 11 --es 5 6 7
 
-## Deploy to pypi
-deploy : $(DEP_PROJECT_PYTHON)
-	rm dist/*
-	poetry run python setup.py bdist_wheel --universal
-	poetry run twine upload dist/*
+## Publish to pypi
+publish : $(DEP_PROJECT_PYTHON)
+	poetry publish
 
 $(DEP_PROJECT_PYTHON) : pyproject.toml
 	poetry install
