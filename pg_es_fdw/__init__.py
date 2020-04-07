@@ -1,11 +1,12 @@
 """ Elastic Search foreign data wrapper """
 # pylint: disable=too-many-instance-attributes, import-error, unexpected-keyword-arg, broad-except, line-too-long
 
+import httplib
 import json
 import logging
-import httplib
 
-from elasticsearch import Elasticsearch, VERSION as ELASTICSEARCH_VERSION
+from elasticsearch import VERSION as ELASTICSEARCH_VERSION
+from elasticsearch import Elasticsearch
 
 from multicorn import ForeignDataWrapper
 from multicorn.utils import log_to_postgres as log2pg
@@ -224,4 +225,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
             return row_data["_id"]
         if column == self.score_column:
             return row_data["_score"]
-        return row_data["_source"][column]
+        value = row_data["_source"][column]
+        if isinstance(value, (list, dict)):
+            return json.dumps(value)
+        return value
