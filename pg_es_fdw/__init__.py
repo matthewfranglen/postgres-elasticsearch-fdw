@@ -57,6 +57,11 @@ class ElasticsearchFDW(ForeignDataWrapper):
         )
 
         self.columns = columns
+        self.json_columns = {
+            column.column_name
+            for column in columns.values()
+            if column.base_type_name.upper() in {"JSON", "JSONB"}
+        }
 
     def get_rel_size(self, quals, columns):
         """ Helps the planner by returning costs.
@@ -132,6 +137,9 @@ class ElasticsearchFDW(ForeignDataWrapper):
         document_id = new_values[self.rowid_column]
         new_values.pop(self.rowid_column, None)
 
+        for key in self.json_columns.intersection(new_values.keys()):
+            new_values[key] = json.loads(new_values[key])
+
         try:
             response = self.client.index(
                 id=document_id, body=new_values, **self.arguments
@@ -153,6 +161,9 @@ class ElasticsearchFDW(ForeignDataWrapper):
         """ Update existing documents in Elastic Search """
 
         new_values.pop(self.rowid_column, None)
+
+        for key in self.json_columns.intersection(new_values.keys()):
+            new_values[key] = json.loads(new_values[key])
 
         try:
             response = self.client.index(
