@@ -77,6 +77,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
             if column.base_type_name.upper() in {"JSON", "JSONB"}
         }
         self.scroll_id = None
+        self.is_json_query = self.query_column in self.json_columns
 
     def get_rel_size(self, quals, columns):
         """ Helps the planner by returning costs.
@@ -85,7 +86,12 @@ class ElasticsearchFDW(ForeignDataWrapper):
         try:
             query = self._get_query(quals)
             if query:
-                response = self.client.count(q=query, **self.arguments)
+                if self.is_json_query:
+                    response = self.client.count(
+                        body=json.loads(query), **self.arguments
+                    )
+                else:
+                    response = self.client.count(q=query, **self.arguments)
             else:
                 response = self.client.count(**self.arguments)
             return (response["count"], len(columns) * 100)
@@ -108,12 +114,20 @@ class ElasticsearchFDW(ForeignDataWrapper):
             query = self._get_query(quals)
 
             if query:
-                response = self.client.search(
-                    size=self.scroll_size,
-                    scroll=self.scroll_duration,
-                    q=query,
-                    **arguments
-                )
+                if self.is_json_query:
+                    response = self.client.search(
+                        size=self.scroll_size,
+                        scroll=self.scroll_duration,
+                        body=json.loads(query),
+                        **self.arguments
+                    )
+                else:
+                    response = self.client.search(
+                        size=self.scroll_size,
+                        scroll=self.scroll_duration,
+                        q=query,
+                        **self.arguments
+                    )
             else:
                 response = self.client.search(
                     size=self.scroll_size, scroll=self.scroll_duration, **arguments
