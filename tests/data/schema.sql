@@ -35,4 +35,26 @@ OPTIONS
     )
 ;
 
+CREATE FOREIGN TABLE nested_articles_es
+    (
+        id BIGINT,
+        name TEXT,
+        "user" JSONB,
+        query TEXT,
+        score NUMERIC
+    )
+SERVER multicorn_es
+OPTIONS
+    (
+        host 'elasticsearch',
+        port '9200',
+        index 'nested-article-index',
+        type 'article',
+        rowid_column 'id',
+        query_column 'query',
+        score_column 'score',
+        timeout '20'
+    )
+;
+
 \q

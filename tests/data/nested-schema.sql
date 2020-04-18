@@ -18,7 +18,7 @@ OPTIONS
     (
         host 'elasticsearch',
         port '9200',
-        index 'article-index',
+        index 'nested-article-index',
         type 'article',
         rowid_column 'id',
         query_column 'query',
