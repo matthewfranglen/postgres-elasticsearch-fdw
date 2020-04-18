@@ -39,7 +39,7 @@ test : $(DEP_PROJECT_PYTHON)
 
 ## Publish to pypi
 publish : $(DEP_PROJECT_PYTHON)
-	poetry publish
+	poetry publish --build
 
 $(DEP_PROJECT_PYTHON) : pyproject.toml
 	poetry install
