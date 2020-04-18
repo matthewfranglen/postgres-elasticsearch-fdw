@@ -10,7 +10,7 @@ repository = "https://github.com/matthewfranglen/postgres-elasticsearch-fdw"
 keywords = ["postgresql", "postgres", "elasticsearch", "es", "fdw"]
 
 [tool.poetry.urls]
-download ="https://github.com/matthewfranglen/postgres-elasticsearch-fdw/archive/0.7.1.zip",
+download ="https://github.com/matthewfranglen/postgres-elasticsearch-fdw/archive/0.7.1.zip"
 
 [tool.poetry.dependencies]
 elasticsearch = "^7.6.0"
