@@ -4,9 +4,15 @@ version = "0.7.0"
 description = "Connect PostgreSQL and Elastic Search with this Foreign Data Wrapper"
 authors = ["Matthew Franglen <matthew@franglen.org>"]
 license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/matthewfranglen/postgres-elasticsearch-fdw"
+repository = "https://github.com/matthewfranglen/postgres-elasticsearch-fdw"
+keywords = ["postgresql", "postgres", "elasticsearch", "es", "fdw"]
+
+[tool.poetry.urls]
+download ="https://github.com/matthewfranglen/postgres-elasticsearch-fdw/archive/0.7.0.zip",
 
 [tool.poetry.dependencies]
-python = "^3.7"
 elasticsearch = "^7.6.0"
 
 [tool.poetry.dev-dependencies]
