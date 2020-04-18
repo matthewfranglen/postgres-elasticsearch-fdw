@@ -1,6 +1,10 @@
 # pylint: disable=line-too-long
 """ Handles docker compose """
 
+import sys
+
+from sh import ErrorReturnCode
+
 from lib.docker_tools import docker_compose
 from lib.tools import show_status
 
@@ -21,7 +25,14 @@ def set_up(pg_version, es_version):
     compose("rm", "--force")
 
     show_status("Building new images...")
-    compose("build")
+    try:
+        compose("build")
+    except ErrorReturnCode as exc:
+        print("Failed to build images...")
+        print(exc.stdout.decode("utf-8"))
+        print()
+        print(exc.stderr.decode("utf-8"))
+        sys.exit(1)
 
     show_status("Starting new containers...")
     compose("up", "-d")
