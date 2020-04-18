@@ -35,7 +35,7 @@ format : $(DEP_PROJECT_PYTHON)
 
 ## Run Tests
 test : $(DEP_PROJECT_PYTHON)
-	poetry run tests/run.py --pg 9.4 9.5 9.6 10 11 --es 5 6 7
+	poetry run tests/run.py --pg 9.4 9.5 9.6 10 11 12 --es 5 6 7
 
 ## Publish to pypi
 publish : $(DEP_PROJECT_PYTHON)
