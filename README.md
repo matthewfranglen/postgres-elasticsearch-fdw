@@ -297,3 +297,9 @@ Try increasing it:
 sudo sysctl -w vm.max_map_count=262144
 ```
 This setting will revert after a reboot.
+
+### Migrating from <=0.6.0
+
+In version 0.7.0 the TEXT representation of json objects changed from HSTORE to JSON.
+If you have been mapping json objects to HSTORE columns then you should change the column type to JSON.
+The arrow operator exists for json so queries should not need rewriting.
