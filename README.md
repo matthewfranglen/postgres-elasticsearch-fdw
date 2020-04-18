@@ -22,6 +22,9 @@ SYNOPSIS
 | 9.6 | `sudo apt-get install postgresql-9.6-python-multicorn` |
 | 10 | `sudo apt-get install postgresql-10-python-multicorn` |
 | 11 | `sudo apt-get install postgresql-11-python-multicorn` |
+| 11 | `sudo apt-get install postgresql-12-python3-multicorn` |
+
+Please note that the Debian package for Multicorn on PostgreSQL 12 requires Python 3.
 
 ### Installation
 
@@ -206,7 +209,7 @@ The makefile will test all versions if you run `make test`:
 
 ```bash
 ➜ make test
-poetry run tests/run.py --pg 9.4 9.5 9.6 10 11 --es 5 6 7
+poetry run tests/run.py --pg 9.4 9.5 9.6 10 11 12 --es 5 6 7
 Testing PostgreSQL 9.4 with Elasticsearch 5
 PostgreSQL 9.4 with Elasticsearch 5: Test read - PASS
 PostgreSQL 9.4 with Elasticsearch 5: Test nested-read - PASS
@@ -267,6 +270,18 @@ Testing PostgreSQL 11 with Elasticsearch 7
 PostgreSQL 11 with Elasticsearch 7: Test read - PASS
 PostgreSQL 11 with Elasticsearch 7: Test nested-read - PASS
 PostgreSQL 11 with Elasticsearch 7: Test query - PASS
+Testing PostgreSQL 12 with Elasticsearch 5
+PostgreSQL 12 with Elasticsearch 5: Test read - PASS
+PostgreSQL 12 with Elasticsearch 5: Test nested-read - PASS
+PostgreSQL 12 with Elasticsearch 5: Test query - PASS
+Testing PostgreSQL 12 with Elasticsearch 6
+PostgreSQL 12 with Elasticsearch 6: Test read - PASS
+PostgreSQL 12 with Elasticsearch 6: Test nested-read - PASS
+PostgreSQL 12 with Elasticsearch 6: Test query - PASS
+Testing PostgreSQL 12 with Elasticsearch 7
+PostgreSQL 12 with Elasticsearch 7: Test read - PASS
+PostgreSQL 12 with Elasticsearch 7: Test nested-read - PASS
+PostgreSQL 12 with Elasticsearch 7: Test query - PASS
 PASS
 ```
 
