@@ -1,9 +1,8 @@
 """ Load fixtures into PostgreSQL and Elastic Search """
 
-from lib.tools import wait_for
-from lib.es_tools import load_json_file, es_is_available
+from lib.es_tools import es_is_available, load_json_file
 from lib.pg_tools import load_sql_file, pg_is_available
-from lib.tools import show_status
+from lib.tools import show_status, wait_for
 
 
 def load_fixtures():
@@ -25,3 +24,4 @@ def load_fixtures():
 
     show_status("Loading Elastic Search data...")
     load_json_file("data.json")
+    load_json_file("nested-data.json")

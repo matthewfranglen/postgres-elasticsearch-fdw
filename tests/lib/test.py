@@ -5,7 +5,7 @@ import argparse
 import sys
 
 from lib.pg_tools import run_sql_test
-from lib.tools import show_status, show_result
+from lib.tools import show_result, show_status
 
 
 def main():
@@ -35,6 +35,12 @@ def perform_tests(pg_version, es_version):
 
     show_status("Testing read...")
     if not show_result(pg_version, es_version, "read", run_sql_test("read.sql")):
+        success = False
+
+    show_status("Testing nested read...")
+    if not show_result(
+        pg_version, es_version, "nested-read", run_sql_test("nested-read.sql")
+    ):
         success = False
 
     show_status("Testing query...")

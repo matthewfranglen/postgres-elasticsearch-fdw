@@ -82,6 +82,7 @@ CREATE FOREIGN TABLE articles_es
         id BIGINT,
         title TEXT,
         body TEXT,
+        metadata JSON,
         query TEXT,
         score NUMERIC
     )
@@ -114,6 +115,14 @@ fields. The other fields have special meaning:
 These are configured using the `rowid_column`, `query_column`,
 `score_column` and `timeout` options. All of these are optional.
 
+##### JSON and JSONB
+
+When elasticsearch returns nested data it is serialized to TEXT as json before being returned.
+This means you can create columns with JSON or JSONB types and the data will be correctly converted on read.
+If you write to a JSON or JSONB column then the data is passed to elasticsearch as json.
+
+As the data is converted on the fly per query the benefits of using JSONB over JSON are limited.
+
 #### Populate the foreign table
 
 ```sql
@@ -121,13 +130,15 @@ INSERT INTO articles_es
     (
         id,
         title,
-        body
+        body,
+        metadata
     )
 VALUES
     (
         1,
         'foo',
-        'spike'
+        'spike',
+        '{"score": 3}'::json
     );
 ```
 
@@ -142,7 +153,8 @@ To select all documents:
 SELECT
     id,
     title,
-    body
+    body,
+    metadata
 FROM
     articles_es
 ;
@@ -155,6 +167,7 @@ SELECT
     id,
     title,
     body,
+    metadata,
     score
 FROM
     articles_es
@@ -189,61 +202,80 @@ which you can install with:
 pip install -r tests/requirements.txt
 ```
 
-You can then run the tests using `tests/run.py`.  This takes the PostgreSQL
-version(s) to test using the `--pg` argument and the Elastic Search versions to
-test with the `--es` argument.  The currently supported versions of PostgreSQL
-are 9.4 through to 11. The currently supported versions of Elastic Search are 5
-and 6. You can pass multiple versions to test it against all of them:
+The makefile will test all versions if you run `make test`:
 
 ```bash
-➜ pipenv run ./tests/run.py --pg 9.4 9.5 9.6 10 11 --es 5 6 7
+➜ make test
+poetry run tests/run.py --pg 9.4 9.5 9.6 10 11 --es 5 6 7
 Testing PostgreSQL 9.4 with Elasticsearch 5
 PostgreSQL 9.4 with Elasticsearch 5: Test read - PASS
+PostgreSQL 9.4 with Elasticsearch 5: Test nested-read - PASS
 PostgreSQL 9.4 with Elasticsearch 5: Test query - PASS
 Testing PostgreSQL 9.4 with Elasticsearch 6
 PostgreSQL 9.4 with Elasticsearch 6: Test read - PASS
+PostgreSQL 9.4 with Elasticsearch 6: Test nested-read - PASS
 PostgreSQL 9.4 with Elasticsearch 6: Test query - PASS
 Testing PostgreSQL 9.4 with Elasticsearch 7
 PostgreSQL 9.4 with Elasticsearch 7: Test read - PASS
+PostgreSQL 9.4 with Elasticsearch 7: Test nested-read - PASS
 PostgreSQL 9.4 with Elasticsearch 7: Test query - PASS
 Testing PostgreSQL 9.5 with Elasticsearch 5
 PostgreSQL 9.5 with Elasticsearch 5: Test read - PASS
+PostgreSQL 9.5 with Elasticsearch 5: Test nested-read - PASS
 PostgreSQL 9.5 with Elasticsearch 5: Test query - PASS
 Testing PostgreSQL 9.5 with Elasticsearch 6
 PostgreSQL 9.5 with Elasticsearch 6: Test read - PASS
+PostgreSQL 9.5 with Elasticsearch 6: Test nested-read - PASS
 PostgreSQL 9.5 with Elasticsearch 6: Test query - PASS
 Testing PostgreSQL 9.5 with Elasticsearch 7
 PostgreSQL 9.5 with Elasticsearch 7: Test read - PASS
+PostgreSQL 9.5 with Elasticsearch 7: Test nested-read - PASS
 PostgreSQL 9.5 with Elasticsearch 7: Test query - PASS
 Testing PostgreSQL 9.6 with Elasticsearch 5
 PostgreSQL 9.6 with Elasticsearch 5: Test read - PASS
+PostgreSQL 9.6 with Elasticsearch 5: Test nested-read - PASS
 PostgreSQL 9.6 with Elasticsearch 5: Test query - PASS
 Testing PostgreSQL 9.6 with Elasticsearch 6
 PostgreSQL 9.6 with Elasticsearch 6: Test read - PASS
+PostgreSQL 9.6 with Elasticsearch 6: Test nested-read - PASS
 PostgreSQL 9.6 with Elasticsearch 6: Test query - PASS
 Testing PostgreSQL 9.6 with Elasticsearch 7
 PostgreSQL 9.6 with Elasticsearch 7: Test read - PASS
+PostgreSQL 9.6 with Elasticsearch 7: Test nested-read - PASS
 PostgreSQL 9.6 with Elasticsearch 7: Test query - PASS
 Testing PostgreSQL 10 with Elasticsearch 5
 PostgreSQL 10 with Elasticsearch 5: Test read - PASS
+PostgreSQL 10 with Elasticsearch 5: Test nested-read - PASS
 PostgreSQL 10 with Elasticsearch 5: Test query - PASS
 Testing PostgreSQL 10 with Elasticsearch 6
 PostgreSQL 10 with Elasticsearch 6: Test read - PASS
+PostgreSQL 10 with Elasticsearch 6: Test nested-read - PASS
 PostgreSQL 10 with Elasticsearch 6: Test query - PASS
 Testing PostgreSQL 10 with Elasticsearch 7
 PostgreSQL 10 with Elasticsearch 7: Test read - PASS
+PostgreSQL 10 with Elasticsearch 7: Test nested-read - PASS
 PostgreSQL 10 with Elasticsearch 7: Test query - PASS
 Testing PostgreSQL 11 with Elasticsearch 5
 PostgreSQL 11 with Elasticsearch 5: Test read - PASS
+PostgreSQL 11 with Elasticsearch 5: Test nested-read - PASS
 PostgreSQL 11 with Elasticsearch 5: Test query - PASS
 Testing PostgreSQL 11 with Elasticsearch 6
 PostgreSQL 11 with Elasticsearch 6: Test read - PASS
+PostgreSQL 11 with Elasticsearch 6: Test nested-read - PASS
 PostgreSQL 11 with Elasticsearch 6: Test query - PASS
 Testing PostgreSQL 11 with Elasticsearch 7
 PostgreSQL 11 with Elasticsearch 7: Test read - PASS
+PostgreSQL 11 with Elasticsearch 7: Test nested-read - PASS
 PostgreSQL 11 with Elasticsearch 7: Test query - PASS
 PASS
 ```
+
+If you want to run the tests for specific versions then you can then run the
+tests using `tests/run.py`.  This takes the PostgreSQL version(s) to test using
+the `--pg` argument and the Elastic Search versions to test with the `--es`
+argument.  The currently supported versions of PostgreSQL are 9.4 through to 11.
+The currently supported versions of Elastic Search are 5 and 6. You can pass
+multiple versions to test it against all of them.
 
 ### Test Failure Messages
 
@@ -265,3 +297,9 @@ Try increasing it:
 sudo sysctl -w vm.max_map_count=262144
 ```
 This setting will revert after a reboot.
+
+### Migrating from <=0.6.0
+
+In version 0.7.0 the TEXT representation of json objects changed from HSTORE to JSON.
+If you have been mapping json objects to HSTORE columns then you should change the column type to JSON.
+The arrow operator exists for json so queries should not need rewriting.
