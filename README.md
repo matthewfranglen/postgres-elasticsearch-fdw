@@ -22,7 +22,7 @@ SYNOPSIS
 | 9.6 | `sudo apt-get install postgresql-9.6-python-multicorn` |
 | 10 | `sudo apt-get install postgresql-10-python-multicorn` |
 | 11 | `sudo apt-get install postgresql-11-python-multicorn` |
-| 11 | `sudo apt-get install postgresql-12-python3-multicorn` |
+| 12 | `sudo apt-get install postgresql-12-python3-multicorn` |
 
 Please note that the Debian package for Multicorn on PostgreSQL 12 requires Python 3.
 
