@@ -288,8 +288,8 @@ PASS
 If you want to run the tests for specific versions then you can then run the
 tests using `tests/run.py`.  This takes the PostgreSQL version(s) to test using
 the `--pg` argument and the Elastic Search versions to test with the `--es`
-argument.  The currently supported versions of PostgreSQL are 9.4 through to 11.
-The currently supported versions of Elastic Search are 5 and 6. You can pass
+argument.  The currently supported versions of PostgreSQL are 9.4 through to 12.
+The currently supported versions of Elastic Search are 5 to 7. You can pass
 multiple versions to test it against all of them.
 
 ### Test Failure Messages
