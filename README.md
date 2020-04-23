@@ -99,7 +99,9 @@ OPTIONS
         rowid_column 'id',
         query_column 'query',
         score_column 'score',
-        timeout '20'
+        timeout '20',
+        username 'elastic',
+        password 'changeme'
     )
 ;
 ```
@@ -114,9 +116,15 @@ fields. The other fields have special meaning:
  * The `query` field accepts Elastic Search queries to filter the rows
  * The `score` field returns the score for the document against the query
  * The `timeout` field specifies the connection timeout in seconds
+ * The `username` field specifies the basic auth username used
+ * The `password` field specifies the basic auth password used
 
 These are configured using the `rowid_column`, `query_column`,
-`score_column` and `timeout` options. All of these are optional.
+`score_column`, `timeout`, `username` and `password` options.
+All of these are optional.
+
+To use basic auth you must provide both a username and a password,
+even if the password is blank.
 
 ##### JSON and JSONB
 
@@ -125,6 +133,15 @@ This means you can create columns with JSON or JSONB types and the data will be 
 If you write to a JSON or JSONB column then the data is passed to elasticsearch as json.
 
 As the data is converted on the fly per query the benefits of using JSONB over JSON are limited.
+
+##### Elastic Search Authentication
+
+Currently basic auth is supported for authentication.
+You can provide the username and password by setting the `username` and `password` options when creating the table.
+You must provide both, even if the password is blank.
+If you do not provide them then basic auth is disabled for the table.
+
+If you need to use other forms of authentication then please open an issue.
 
 #### Populate the foreign table
 
