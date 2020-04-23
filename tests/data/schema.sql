@@ -31,7 +31,9 @@ OPTIONS
         rowid_column 'id',
         query_column 'query',
         score_column 'score',
-        timeout '20'
+        timeout '20',
+        username 'elastic',
+        password 'changeme'
     )
 ;
 
@@ -53,7 +55,9 @@ OPTIONS
         rowid_column 'id',
         query_column 'query',
         score_column 'score',
-        timeout '20'
+        timeout '20',
+        username 'elastic',
+        password 'changeme'
     )
 ;
 
