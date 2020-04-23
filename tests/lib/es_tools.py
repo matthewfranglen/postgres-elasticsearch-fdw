@@ -13,7 +13,9 @@ def es_is_available():
 
     try:
         return (
-            requests.get("http://localhost:9200").json()["tagline"]
+            requests.get("http://localhost:9200", auth=("elastic", "changeme")).json()[
+                "tagline"
+            ]
             == "You Know, for Search"
         )
     except Exception:
@@ -29,4 +31,6 @@ def load_json_file(filename):
 
     with open(path, "r") as handle:
         body = handle.read().encode(encoding="utf-8")
-        return requests.post(url, headers=headers, data=body)
+        return requests.post(
+            url, headers=headers, data=body, auth=("elastic", "changeme")
+        )
