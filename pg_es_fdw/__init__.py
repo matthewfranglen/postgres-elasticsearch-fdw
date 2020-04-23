@@ -35,6 +35,8 @@ class ElasticsearchFDW(ForeignDataWrapper):
         self.scroll_size = int(options.get("scroll_size", "1000"))
         self.scroll_duration = options.get("scroll_duration", "10m")
         self._rowid_column = options.get("rowid_column", "id")
+        username = options.get("username", None)
+        password = options.get("password", None)
 
         if ELASTICSEARCH_VERSION[0] >= 7:
             self.path = "/{index}".format(index=self.index)
@@ -45,6 +47,13 @@ class ElasticsearchFDW(ForeignDataWrapper):
             )
             self.arguments = {"index": self.index, "doc_type": self.doc_type}
 
+        if (username is None) != (password is None):
+            raise ValueError("Must provide both username and password")
+        if username is not None:
+            auth = (username, password)
+        else:
+            auth = None
+
         self.client = Elasticsearch(
             [
                 {
@@ -52,6 +61,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
                     "port": int(options.get("port", "9200")),
                 }
             ],
+            http_auth=auth,
             timeout=int(options.get("timeout", "10")),
         )
 
