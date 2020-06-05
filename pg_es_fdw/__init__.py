@@ -63,6 +63,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
             ],
             http_auth=auth,
             timeout=int(options.get("timeout", "10")),
+            use_ssl=options.get("use_ssl", False),
         )
 
         self.columns = columns
