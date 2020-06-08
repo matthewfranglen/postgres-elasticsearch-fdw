@@ -28,15 +28,15 @@ class ElasticsearchFDW(ForeignDataWrapper):
     def __init__(self, options, columns):
         super(ElasticsearchFDW, self).__init__(options, columns)
 
-        self.index = options.get("index", "")
-        self.doc_type = options.get("type", "")
-        self.query_column = options.get("query_column", None)
-        self.score_column = options.get("score_column", None)
-        self.scroll_size = int(options.get("scroll_size", "1000"))
-        self.scroll_duration = options.get("scroll_duration", "10m")
-        self._rowid_column = options.get("rowid_column", "id")
-        username = options.get("username", None)
-        password = options.get("password", None)
+        self.index = options.pop("index", "")
+        self.doc_type = options.pop("type", "")
+        self.query_column = options.pop("query_column", None)
+        self.score_column = options.pop("score_column", None)
+        self.scroll_size = int(options.pop("scroll_size", "1000"))
+        self.scroll_duration = options.pop("scroll_duration", "10m")
+        self._rowid_column = options.pop("rowid_column", "id")
+        username = options.pop("username", None)
+        password = options.pop("password", None)
 
         if ELASTICSEARCH_VERSION[0] >= 7:
             self.path = "/{index}".format(index=self.index)
@@ -54,15 +54,11 @@ class ElasticsearchFDW(ForeignDataWrapper):
         else:
             auth = None
 
+        host = options.pop("host", "localhost")
+        port = int(options.pop("port", "9200"))
+        timeout = int(options.pop("timeout", "10"))
         self.client = Elasticsearch(
-            [
-                {
-                    "host": options.get("host", "localhost"),
-                    "port": int(options.get("port", "9200")),
-                }
-            ],
-            http_auth=auth,
-            timeout=int(options.get("timeout", "10")),
+            [{"host": host, "port": port}], http_auth=auth, timeout=timeout, **options
         )
 
         self.columns = columns
