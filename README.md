@@ -118,6 +118,7 @@ fields. The other fields have special meaning:
  * The `timeout` field specifies the connection timeout in seconds
  * The `username` field specifies the basic auth username used
  * The `password` field specifies the basic auth password used
+ * Any other options are passed through to the elasticsearch client, use this to specify things like ssl
 
 These are configured using the `rowid_column`, `query_column`,
 `score_column`, `timeout`, `username` and `password` options.
