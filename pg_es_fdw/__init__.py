@@ -37,6 +37,9 @@ class ElasticsearchFDW(ForeignDataWrapper):
         self._rowid_column = options.pop("rowid_column", "id")
         username = options.pop("username", None)
         password = options.pop("password", None)
+        
+        sort_column = options.pop("timestamp_column", None)
+        sort_order = options.pop("timestamp_order", "desc")
 
         if ELASTICSEARCH_VERSION[0] >= 7:
             self.path = "/{index}".format(index=self.index)
@@ -46,7 +49,12 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 index=self.index, doc_type=self.doc_type
             )
             self.arguments = {"index": self.index, "doc_type": self.doc_type}
-
+        if sort_column is not None:
+            self.arguments["sort"] = [
+                {
+                    sort_column:sort_order
+                }
+            ]
         if (username is None) != (password is None):
             raise ValueError("Must provide both username and password")
         if username is not None:

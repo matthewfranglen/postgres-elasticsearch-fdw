@@ -16,10 +16,8 @@ if __name__ == "__main__":
         description="Connect PostgreSQL and Elastic Search with this Foreign Data Wrapper",
         long_description=LONG_DESCRIPTION,
         long_description_content_type="text/markdown",
-        author="Matthew Franglen",
-        author_email="matthew@franglen.org",
-        url="https://github.com/matthewfranglen/postgres-elasticsearch-fdw",
-        download_url="https://github.com/matthewfranglen/postgres-elasticsearch-fdw/archive/0.8.0.zip",
+        author="Kyle Kubis",
+        author_email="kyle.kubis@gmail.com",
         keywords=["postgres", "postgresql", "elastic", "elastic search", "fdw"],
         install_requires=["elasticsearch"],
     )
