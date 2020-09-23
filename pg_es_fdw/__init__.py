@@ -38,8 +38,8 @@ class ElasticsearchFDW(ForeignDataWrapper):
         username = options.pop("username", None)
         password = options.pop("password", None)
         
-        sort_column = options.pop("timestamp_column", None)
-        sort_order = options.pop("timestamp_order", "desc")
+        sort_column = options.pop("sort_column", None)
+        sort_order = options.pop("sort_order", "desc")
 
         if ELASTICSEARCH_VERSION[0] >= 7:
             self.path = "/{index}".format(index=self.index)
