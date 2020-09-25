@@ -7,5 +7,5 @@ FULL OUTER JOIN
 ON
     pg.id = es.id
 WHERE
-    es.sort = 'title'
+    es.sort = 'length'
 ;
