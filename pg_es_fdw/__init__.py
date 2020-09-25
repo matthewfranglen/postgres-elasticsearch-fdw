@@ -6,7 +6,6 @@ import logging
 
 from elasticsearch import VERSION as ELASTICSEARCH_VERSION
 from elasticsearch import Elasticsearch
-
 from multicorn import ForeignDataWrapper
 from multicorn.utils import log_to_postgres as log2pg
 
@@ -218,11 +217,11 @@ class ElasticsearchFDW(ForeignDataWrapper):
             ),
             None,
         )
-    
-    def _get_sort(self,quals):
+
+    def _get_sort(self, quals):
         if not self.sort_column:
             return self.default_sort
-        
+
         return next(
             (
                 qualifier.value
