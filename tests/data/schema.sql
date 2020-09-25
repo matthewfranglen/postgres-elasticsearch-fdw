@@ -19,6 +19,7 @@ CREATE FOREIGN TABLE articles_es
         title TEXT,
         body TEXT,
         query TEXT,
+        sort TEXT,
         score NUMERIC
     )
 SERVER multicorn_es
@@ -30,6 +31,7 @@ OPTIONS
         type 'article',
         rowid_column 'id',
         query_column 'query',
+        sort_column 'sort',
         score_column 'score',
         timeout '20',
         username 'elastic',
@@ -43,6 +45,7 @@ CREATE FOREIGN TABLE nested_articles_es
         name TEXT,
         "user" JSONB,
         query TEXT,
+        sort TEXT,
         score NUMERIC
     )
 SERVER multicorn_es
@@ -54,6 +57,7 @@ OPTIONS
         type 'article',
         rowid_column 'id',
         query_column 'query',
+        sort_column 'sort',
         score_column 'score',
         timeout '20',
         username 'elastic',

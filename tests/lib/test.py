@@ -43,6 +43,12 @@ def perform_tests(pg_version, es_version):
     ):
         success = False
 
+    show_status("Testing sorted read...")
+    if not show_result(
+        pg_version, es_version, "sorted-read", run_sql_test("sorted-read.sql")
+    ):
+        success = False
+
     show_status("Testing query...")
     if not show_result(pg_version, es_version, "query", run_sql_test("query.sql")):
         success = False

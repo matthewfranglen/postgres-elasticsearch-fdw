@@ -6,7 +6,6 @@ import logging
 
 from elasticsearch import VERSION as ELASTICSEARCH_VERSION
 from elasticsearch import Elasticsearch
-
 from multicorn import ForeignDataWrapper
 from multicorn.utils import log_to_postgres as log2pg
 
@@ -32,6 +31,8 @@ class ElasticsearchFDW(ForeignDataWrapper):
         self.doc_type = options.pop("type", "")
         self.query_column = options.pop("query_column", None)
         self.score_column = options.pop("score_column", None)
+        self.default_sort = options.pop("default_sort", "")
+        self.sort_column = options.pop("sort_column", None)
         self.scroll_size = int(options.pop("scroll_size", "1000"))
         self.scroll_duration = options.pop("scroll_duration", "10m")
         self._rowid_column = options.pop("rowid_column", "id")
@@ -74,7 +75,6 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
         try:
             query = self._get_query(quals)
-
             if query:
                 response = self.client.count(q=query, **self.arguments)
             else:
@@ -93,6 +93,9 @@ class ElasticsearchFDW(ForeignDataWrapper):
         """ Execute the query """
 
         try:
+            arguments = dict(self.arguments)
+            arguments['sort'] = self._get_sort(quals)
+            sort = arguments['sort']
             query = self._get_query(quals)
 
             if query:
@@ -100,18 +103,18 @@ class ElasticsearchFDW(ForeignDataWrapper):
                     size=self.scroll_size,
                     scroll=self.scroll_duration,
                     q=query,
-                    **self.arguments
+                    **arguments
                 )
             else:
                 response = self.client.search(
-                    size=self.scroll_size, scroll=self.scroll_duration, **self.arguments
+                    size=self.scroll_size, scroll=self.scroll_duration, **arguments
                 )
 
             while True:
                 scroll_id = response["_scroll_id"]
 
                 for result in response["hits"]["hits"]:
-                    yield self._convert_response_row(result, columns, query)
+                    yield self._convert_response_row(result, columns, query, sort)
 
                 if len(response["hits"]["hits"]) < self.scroll_size:
                     return
@@ -215,26 +218,31 @@ class ElasticsearchFDW(ForeignDataWrapper):
             None,
         )
 
-    def _convert_response_row(self, row_data, columns, query):
-        if query:
-            # Postgres checks the query after too, so the query column needs to be present
-            return dict(
-                [
-                    (column, self._convert_response_column(column, row_data))
-                    for column in columns
-                    if column in row_data["_source"]
-                    or column == self.rowid_column
-                    or column == self.score_column
-                ]
-                + [(self.query_column, query)]
-            )
-        return {
+    def _get_sort(self, quals):
+        if not self.sort_column:
+            return self.default_sort
+
+        return next(
+            (
+                qualifier.value
+                for qualifier in quals
+                if qualifier.field_name == self.sort_column and qualifier.value
+            ),
+            self.default_sort
+        )
+
+    def _convert_response_row(self, row_data, columns, query, sort):
+        return_dict = {
             column: self._convert_response_column(column, row_data)
             for column in columns
             if column in row_data["_source"]
             or column == self.rowid_column
             or column == self.score_column
         }
+        if query:
+            return_dict[self.query_column] = query
+        return_dict[self.sort_column] = sort
+        return return_dict
 
     def _convert_response_column(self, column, row_data):
         if column == self.rowid_column:
