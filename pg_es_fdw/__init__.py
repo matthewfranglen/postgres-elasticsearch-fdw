@@ -231,32 +231,19 @@ class ElasticsearchFDW(ForeignDataWrapper):
             ),
             self.default_sort
         )
-        return self.default_sort
 
     def _convert_response_row(self, row_data, columns, query, sort):
+        return_dict = {
+            column: self._convert_response_column(column, row_data)
+            for column in columns
+            if column in row_data["_source"]
+            or column == self.rowid_column
+            or column == self.score_column
+        }
         if query:
-            # Postgres checks the query after too, so the query column needs to be present
-            return dict(
-                [
-                    (column, self._convert_response_column(column, row_data))
-                    for column in columns
-                    if column in row_data["_source"]
-                    or column == self.rowid_column
-                    or column == self.score_column
-                ]
-                + [(self.query_column, query)]
-                + [(self.sort_column, sort)]
-            )
-        return dict(
-            [
-                (column, self._convert_response_column(column, row_data))
-                for column in columns
-                if column in row_data["_source"]
-                or column == self.rowid_column
-                or column == self.score_column
-            ]
-            + [(self.sort_column, sort)]
-        )
+            return_dict[self.query_column] = query
+        return_dict[self.sort_column] = sort
+        return return_dict
 
     def _convert_response_column(self, column, row_data):
         if column == self.rowid_column:

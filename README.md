@@ -197,10 +197,11 @@ WHERE
 ;
 ```
 
-#### Using the default sort and sort column
-When you want to query and sort before returning results.
+This uses the [URI Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-uri-request.html) from Elastic Search.
 
-### Creating the Table
+#### Using the default sort and sort column
+
+Example: Creating the table
 ```
 CREATE FOREIGN TABLE test_index (
     id TEXT,
@@ -233,8 +234,7 @@ OPTIONS (
  );
 ```
 
-### Querying with sort
-Not using the column.
+Not using the sort column in the where clause, as you see it uses the default setting.
 
 ```
 test=# select unit,last_updated,sort from test_index limit 10;
@@ -252,7 +252,11 @@ NOTICE:  Sort: last_updated:desc
  2418 | 2020-09-25 09:47:25.404088 | last_updated:desc
  2417 | 2020-09-25 09:47:24.396159 | last_updated:desc
 ```
-Using the column
+
+Using the column to sort by other means. can be a comma seperated list
+```
+unit:asc,last_updated:desc
+```
 ```
 test=# select unit,last_updated,sort from test_index WHERE sort = 'unit:asc' limit 10;
  unit |        last_updated        |   sort   
@@ -268,12 +272,6 @@ test=# select unit,last_updated,sort from test_index WHERE sort = 'unit:asc' lim
  8    | 2020-09-25 09:06:50.445831 | unit:asc
  9    | 2020-09-25 09:06:51.457017 | unit:asc
 ```
-
-
-
-
-
-This uses the [URI Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-uri-request.html) from Elastic Search.
 
 Caveats
 -------
