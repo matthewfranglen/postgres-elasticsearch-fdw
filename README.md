@@ -197,6 +197,82 @@ WHERE
 ;
 ```
 
+#### Using the default sort and sort column
+When you want to query and sort before returning results.
+
+### Creating the Table
+```
+CREATE FOREIGN TABLE test_index (
+    id TEXT,
+    unit TEXT,
+    name TEXT,
+    last_updated timestamp,
+    address TEXT,
+    ipv4 TEXT,
+    company TEXT,
+    credit_card_number TEXT,
+    credit_card_provider TEXT,
+    credit_card_security TEXT,
+    email TEXT,
+    query TEXT,
+    sort TEXT,
+    score NUMERIC
+ )
+SERVER multicorn_es
+OPTIONS (
+    host 'localhost',
+    port '9200',
+    index 'test-index',
+    type 'doc',
+    rowid_column 'id',
+    query_column 'query',
+    score_column 'score',
+    default_sort 'last_updated:desc',
+    sort_column 'sort',
+    timeout '20'
+ );
+```
+
+### Querying with sort
+Not using the column.
+
+```
+test=# select unit,last_updated,sort from test_index limit 10;
+NOTICE:  Sort: last_updated:desc
+ unit |        last_updated        |       sort        
+------+----------------------------+-------------------
+ 2426 | 2020-09-25 09:47:33.490236 | last_updated:desc
+ 2425 | 2020-09-25 09:47:32.477546 | last_updated:desc
+ 2424 | 2020-09-25 09:47:31.469799 | last_updated:desc
+ 2423 | 2020-09-25 09:47:30.463913 | last_updated:desc
+ 2422 | 2020-09-25 09:47:29.456766 | last_updated:desc
+ 2421 | 2020-09-25 09:47:28.445883 | last_updated:desc
+ 2420 | 2020-09-25 09:47:27.427684 | last_updated:desc
+ 2419 | 2020-09-25 09:47:26.414521 | last_updated:desc
+ 2418 | 2020-09-25 09:47:25.404088 | last_updated:desc
+ 2417 | 2020-09-25 09:47:24.396159 | last_updated:desc
+```
+Using the column
+```
+test=# select unit,last_updated,sort from test_index WHERE sort = 'unit:asc' limit 10;
+ unit |        last_updated        |   sort   
+------+----------------------------+----------
+ 0    | 2020-09-25 09:06:42.353452 | unit:asc
+ 1    | 2020-09-25 09:06:43.367991 | unit:asc
+ 2    | 2020-09-25 09:06:44.379327 | unit:asc
+ 3    | 2020-09-25 09:06:45.389997 | unit:asc
+ 4    | 2020-09-25 09:06:46.403873 | unit:asc
+ 5    | 2020-09-25 09:06:47.41339  | unit:asc
+ 6    | 2020-09-25 09:06:48.421894 | unit:asc
+ 7    | 2020-09-25 09:06:49.433148 | unit:asc
+ 8    | 2020-09-25 09:06:50.445831 | unit:asc
+ 9    | 2020-09-25 09:06:51.457017 | unit:asc
+```
+
+
+
+
+
 This uses the [URI Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-uri-request.html) from Elastic Search.
 
 Caveats
