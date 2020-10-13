@@ -39,6 +39,12 @@ class ElasticsearchFDW(ForeignDataWrapper):
         username = options.pop("username", None)
         password = options.pop("password", None)
 
+        refresh = options.pop("refresh", False)
+        if (refresh == True or refresh == 'wait_for'):
+            self.refresh=refresh
+        else:
+            self.refresh=False
+
         if ELASTICSEARCH_VERSION[0] >= 7:
             self.path = "/{index}".format(index=self.index)
             self.arguments = {"index": self.index}
@@ -150,9 +156,11 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
         try:
             response = self.client.index(
-                id=document_id, body=new_values, **self.arguments
+                id=document_id, body=new_values, refresh=self.refresh, **self.arguments
             )
-            return response
+            data={}
+            data[self.rowid_column] = response["_id"]
+            return data
         except Exception as exception:
             log2pg(
                 "INDEX for {path}/{document_id} and document {document} failed: {exception}".format(
