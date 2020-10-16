@@ -66,7 +66,7 @@ def perform_tests(pg_version, es_version):
         pg_version,
         es_version,
         "insert returning row",
-        (data == "2 | Test insert wait for title | test insert wait for body", error),
+        (data == "2 | Test insert title | test insert body", error),
     ):
         success = False
 
@@ -76,7 +76,7 @@ def perform_tests(pg_version, es_version):
         pg_version,
         es_version,
         "insert waiting for refresh",
-        (data == "2 | Test insert wait for title | test insert wait for body", error),
+        (data == "3 | Test insert wait for title | test insert wait for body", error),
     ):
         success = False
 
