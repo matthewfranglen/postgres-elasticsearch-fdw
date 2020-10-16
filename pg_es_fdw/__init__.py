@@ -157,9 +157,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
             response = self.client.index(
                 id=document_id, body=new_values, refresh=self.refresh, **self.arguments
             )
-            data = {}
-            data[self.rowid_column] = response["_id"]
-            return data
+            return {self.rowid_column: response["_id"]}
         except Exception as exception:
             log2pg(
                 "INDEX for {path}/{document_id} and document {document} failed: {exception}".format(
