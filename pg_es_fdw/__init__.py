@@ -43,6 +43,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         self.refresh = options.pop("refresh", False)
         if self.refresh not in {True, False, "wait_for"}:
             raise ValueError("refresh option must be one of true, false, or wait_for")
+        self.complete_returning = options.pop("complete_returning", False)
 
         if ELASTICSEARCH_VERSION[0] >= 7:
             self.path = "/{index}".format(index=self.index)
@@ -187,9 +188,9 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
         try:
             response = self.client.index(
-                id=document_id, body=new_values, **self.arguments
+                id=document_id, body=new_values, refresh=self.refresh, **self.arguments
             )
-            return response
+            return {self.rowid_column: response["_id"]}
         except Exception as exception:
             log2pg(
                 "INDEX for {path}/{document_id} and document {document} failed: {exception}".format(
