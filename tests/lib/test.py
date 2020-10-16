@@ -66,7 +66,7 @@ def perform_tests(pg_version, es_version):
         pg_version,
         es_version,
         "insert returning row",
-        (data == "2 | Test insert title | test insert body", error),
+        (data == "2 | Test insert returning title | test insert returning body", error),
     ):
         success = False
 
