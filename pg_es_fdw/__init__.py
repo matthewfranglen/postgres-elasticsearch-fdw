@@ -266,3 +266,22 @@ class ElasticsearchFDW(ForeignDataWrapper):
         if isinstance(value, (list, dict)):
             return json.dumps(value)
         return value
+
+    def _read_by_id(self, ids):
+        try:
+            arguments = dict(self.arguments)
+            for idx in range(0, len(ids), 10000):
+                for result in self.client.search(
+                    body={"query": {"ids": {"values": ids[idx : idx + 10000]}}},
+                    size=10000,
+                    **arguments
+                )["hits"]["hits"]:
+                    yield self._convert_response_row(result, self.columns, None, None)
+        except Exception as exception:
+            log2pg(
+                "SEARCH for {path} failed: {exception}".format(
+                    path=self.path, exception=exception
+                ),
+                logging.ERROR,
+            )
+            return
