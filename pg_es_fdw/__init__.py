@@ -73,6 +73,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
             for column in columns.values()
             if column.base_type_name.upper() in {"JSON", "JSONB"}
         }
+        self.scroll_id = None
 
     def get_rel_size(self, quals, columns):
         """ Helps the planner by returning costs.
@@ -116,7 +117,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 )
 
             while True:
-                scroll_id = response["_scroll_id"]
+                self.scroll_id = response["_scroll_id"]
 
                 for result in response["hits"]["hits"]:
                     yield self._convert_response_row(result, columns, query, sort)
@@ -124,7 +125,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 if len(response["hits"]["hits"]) < self.scroll_size:
                     return
                 response = self.client.scroll(
-                    scroll_id=scroll_id, scroll=self.scroll_duration
+                    scroll_id=self.scroll_id, scroll=self.scroll_duration
                 )
         except Exception as exception:
             log2pg(
@@ -134,6 +135,12 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 logging.ERROR,
             )
             return
+
+    def end_scan(self):
+        """ Hook called at the end of a foreign scan. """
+        if self.scroll_id:
+            self.client.clear_scroll(scroll_id=self.scroll_id)
+            self.scroll_id = None
 
     def insert(self, new_values):
         """ Insert new documents into Elastic Search """
