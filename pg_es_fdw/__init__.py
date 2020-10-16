@@ -40,8 +40,8 @@ class ElasticsearchFDW(ForeignDataWrapper):
         username = options.pop("username", None)
         password = options.pop("password", None)
 
-        self.refresh = options.pop("refresh", False)
-        if self.refresh not in {True, False, "wait_for"}:
+        self.refresh = options.pop("refresh", "false").lower()
+        if self.refresh not in {"true", "false", "wait_for"}:
             raise ValueError("refresh option must be one of true, false, or wait_for")
         self.complete_returning = options.pop("complete_returning", False)
 
