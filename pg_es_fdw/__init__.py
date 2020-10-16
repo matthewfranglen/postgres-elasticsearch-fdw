@@ -43,7 +43,9 @@ class ElasticsearchFDW(ForeignDataWrapper):
         self.refresh = options.pop("refresh", "false").lower()
         if self.refresh not in {"true", "false", "wait_for"}:
             raise ValueError("refresh option must be one of true, false, or wait_for")
-        self.complete_returning = options.pop("complete_returning", False)
+        self.complete_returning = (
+            options.pop("complete_returning", "false").lower() == "true"
+        )
 
         if ELASTICSEARCH_VERSION[0] >= 7:
             self.path = "/{index}".format(index=self.index)
