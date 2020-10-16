@@ -165,6 +165,8 @@ class ElasticsearchFDW(ForeignDataWrapper):
             response = self.client.index(
                 id=document_id, body=new_values, refresh=self.refresh, **self.arguments
             )
+            if self.complete_returning:
+                return self._read_by_id(response["_id"])
             return {self.rowid_column: response["_id"]}
         except Exception as exception:
             log2pg(
@@ -190,6 +192,8 @@ class ElasticsearchFDW(ForeignDataWrapper):
             response = self.client.index(
                 id=document_id, body=new_values, refresh=self.refresh, **self.arguments
             )
+            if self.complete_returning:
+                return self._read_by_id(response["_id"])
             return {self.rowid_column: response["_id"]}
         except Exception as exception:
             log2pg(
@@ -267,21 +271,26 @@ class ElasticsearchFDW(ForeignDataWrapper):
             return json.dumps(value)
         return value
 
-    def _read_by_id(self, ids):
+    def _read_by_id(self, row_id):
         try:
             arguments = dict(self.arguments)
-            for idx in range(0, len(ids), 10000):
-                for result in self.client.search(
-                    body={"query": {"ids": {"values": ids[idx : idx + 10000]}}},
-                    size=10000,
-                    **arguments
-                )["hits"]["hits"]:
-                    yield self._convert_response_row(result, self.columns, None, None)
+            results = self.client.search(
+                body={"query": {"ids": {"values": [row_id]}}}, size=10000, **arguments
+            )["hits"]["hits"]
+            if results:
+                return self._convert_response_row(results[0], self.columns, None, None)
+            log2pg(
+                "SEARCH for {path} row_id {row_id} returned nothing".format(
+                    path=self.path, row_id=row_id
+                ),
+                logging.WARNING,
+            )
+            return {self.rowid_column: row_id}
         except Exception as exception:
             log2pg(
-                "SEARCH for {path} failed: {exception}".format(
-                    path=self.path, exception=exception
+                "SEARCH for {path} row_id {row_id} failed: {exception}".format(
+                    path=self.path, row_id=row_id, exception=exception
                 ),
                 logging.ERROR,
             )
-            return
+            return {}
