@@ -6,6 +6,7 @@ import logging
 
 from elasticsearch import VERSION as ELASTICSEARCH_VERSION
 from elasticsearch import Elasticsearch
+
 from multicorn import ForeignDataWrapper
 from multicorn.utils import log_to_postgres as log2pg
 
@@ -39,11 +40,9 @@ class ElasticsearchFDW(ForeignDataWrapper):
         username = options.pop("username", None)
         password = options.pop("password", None)
 
-        refresh = options.pop("refresh", False)
-        if (refresh == True or refresh == 'wait_for'):
-            self.refresh=refresh
-        else:
-            self.refresh=False
+        self.refresh = options.pop("refresh", False)
+        if self.refresh not in {True, False, "wait_for"}:
+            raise ValueError("refresh option must be one of true, false, or wait_for")
 
         if ELASTICSEARCH_VERSION[0] >= 7:
             self.path = "/{index}".format(index=self.index)
@@ -100,8 +99,8 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
         try:
             arguments = dict(self.arguments)
-            arguments['sort'] = self._get_sort(quals)
-            sort = arguments['sort']
+            arguments["sort"] = self._get_sort(quals)
+            sort = arguments["sort"]
             query = self._get_query(quals)
 
             if query:
@@ -158,7 +157,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
             response = self.client.index(
                 id=document_id, body=new_values, refresh=self.refresh, **self.arguments
             )
-            data={}
+            data = {}
             data[self.rowid_column] = response["_id"]
             return data
         except Exception as exception:
@@ -236,7 +235,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 for qualifier in quals
                 if qualifier.field_name == self.sort_column and qualifier.value
             ),
-            self.default_sort
+            self.default_sort,
         )
 
     def _convert_response_row(self, row_data, columns, query, sort):
