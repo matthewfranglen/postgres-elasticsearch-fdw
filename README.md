@@ -239,7 +239,7 @@ Not using the sort column in the where clause, as you see it uses the default se
 ```
 test=# select unit,last_updated,sort from test_index limit 10;
 NOTICE:  Sort: last_updated:desc
- unit |        last_updated        |       sort        
+ unit |        last_updated        |       sort
 ------+----------------------------+-------------------
  2426 | 2020-09-25 09:47:33.490236 | last_updated:desc
  2425 | 2020-09-25 09:47:32.477546 | last_updated:desc
@@ -259,7 +259,7 @@ unit:asc,last_updated:desc
 ```
 ```
 test=# select unit,last_updated,sort from test_index WHERE sort = 'unit:asc' limit 10;
- unit |        last_updated        |   sort   
+ unit |        last_updated        |   sort
 ------+----------------------------+----------
  0    | 2020-09-25 09:06:42.353452 | unit:asc
  1    | 2020-09-25 09:06:43.367991 | unit:asc
