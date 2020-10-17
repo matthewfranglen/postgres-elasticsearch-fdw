@@ -215,6 +215,20 @@ If you always want sorted results then you can use the `default_sort` option to 
 To break ties you can specify further columns to sort on.
 You just need to separate the columns with a comma, for example `unit:asc,last_updated:desc`.
 
+```
+SELECT
+    id,
+    title,
+    body,
+    metadata,
+    score
+FROM
+    articles_es
+WHERE
+    sort = 'id:asc'
+;
+```
+
 Caveats
 -------
 
