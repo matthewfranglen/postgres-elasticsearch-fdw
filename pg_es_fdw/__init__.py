@@ -277,7 +277,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         try:
             arguments = dict(self.arguments)
             results = self.client.search(
-                body={"query": {"ids": {"values": [row_id]}}}, size=10000, **arguments
+                body={"query": {"ids": {"values": [row_id]}}}, **arguments
             )["hits"]["hits"]
             if results:
                 return self._convert_response_row(results[0], self.columns, None, None)
