@@ -102,6 +102,8 @@ OPTIONS
         score_column 'score',
         default_sort 'last_updated:desc',
         sort_column 'sort',
+        refresh 'false',
+        complete_returning 'false',
         timeout '20',
         username 'elastic',
         password 'changeme'
@@ -115,18 +117,19 @@ corresponds to the `doc_type` used in prior versions of Elastic Search.
 This corresponds to an Elastic Search index which contains a `title` and `body`
 fields. The other fields have special meaning:
 
- * The `id` field is mapped to the Elastic Search document id
- * The `query` field accepts Elastic Search queries to filter the rows
- * The `score` field returns the score for the document against the query
- * The `sort` field accepts an Elastic Search column to sort by
+ * The `rowid_column` (`id` above) is mapped to the Elastic Search document id
+ * The `query_column` (`query` above) accepts Elastic Search queries to filter the rows
+ * The `score_column` (`score` above) returns the score for the document against the query
+ * The `sort_column` (`sort` above) accepts an Elastic Search column to sort by
+ * The `refresh` option controls if inserts and updates should wait for an index refresh ([Elastic Search documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-refresh.html)). The acceptable values are `"false"` (default), `"wait_for"` and `"true"`
+ * The `complete_returning` options controls if Elastic Search is queries for the document after an insert to support `RETURNING` fields other than the document id. The acceptable values are `"false"` (default) and `"true"`
  * The `timeout` field specifies the connection timeout in seconds
  * The `username` field specifies the basic auth username used
  * The `password` field specifies the basic auth password used
  * Any other options are passed through to the elasticsearch client, use this to specify things like ssl
 
-These are configured using the `rowid_column`, `query_column`,
-`score_column`, `timeout`, `username` and `password` options.
 All of these are optional.
+Enabling `refresh` or `complete_returning` comes with a performance penalty.
 
 To use basic auth you must provide both a username and a password,
 even if the password is blank.
@@ -228,6 +231,24 @@ WHERE
     sort = 'id:asc'
 ;
 ```
+
+#### Refresh and RETURNING
+
+When inserting or updating documents in Elastic Search the document ID is returned.
+This can be accessed through the `RETURNING` statement without any additional performance loss.
+
+To get further fields requires reading the document from Elastic Search again.
+This comes at a cost because an immediate read after an insert may not return the updated document.
+Elastic Search periodically refreshes the indexes and at that point the document will be available.
+
+To wait for a refresh before returning you can use the `refresh` parameter.
+This accepts three values: `"false"` (the default), `"true"` and `"wait_for"`.
+You can read about them [here](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-refresh.html).
+If you choose to use the refresh setting then it is recommended to use `"wait_for"`.
+
+Once you have chosen to wait for the refresh you can enable full returning support by setting `complete_returning` to `"true"`.
+Both the `refresh` and `complete_returning` options are set during table creation.
+If you do not wish to incur the associated costs for every query then you can create two tables with different settings.
 
 Caveats
 -------
