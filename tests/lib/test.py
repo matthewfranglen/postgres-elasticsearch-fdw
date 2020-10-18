@@ -53,6 +53,33 @@ def perform_tests(pg_version, es_version):
     if not show_result(pg_version, es_version, "query", run_sql_test("query.sql")):
         success = False
 
+    show_status("Testing insert returning id...")
+    data, error = run_sql_test("insert-return-id.sql")
+    if not show_result(
+        pg_version, es_version, "insert returning id", (data == "1", error)
+    ):
+        success = False
+
+    show_status("Testing insert returning row...")
+    data, error = run_sql_test("insert-return-row.sql")
+    if not show_result(
+        pg_version,
+        es_version,
+        "insert returning row",
+        (data == "2 | Test insert returning title | test insert returning body", error),
+    ):
+        success = False
+
+    show_status("Testing insert waiting for refresh...")
+    data, error = run_sql_test("insert-wait_for.sql")
+    if not show_result(
+        pg_version,
+        es_version,
+        "insert waiting for refresh",
+        (data == "3 | Test insert wait for title | test insert wait for body", error),
+    ):
+        success = False
+
     return success
 
 

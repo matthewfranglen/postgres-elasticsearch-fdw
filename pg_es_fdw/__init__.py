@@ -6,6 +6,7 @@ import logging
 
 from elasticsearch import VERSION as ELASTICSEARCH_VERSION
 from elasticsearch import Elasticsearch
+
 from multicorn import ForeignDataWrapper
 from multicorn.utils import log_to_postgres as log2pg
 
@@ -39,6 +40,13 @@ class ElasticsearchFDW(ForeignDataWrapper):
         username = options.pop("username", None)
         password = options.pop("password", None)
 
+        self.refresh = options.pop("refresh", "false").lower()
+        if self.refresh not in {"true", "false", "wait_for"}:
+            raise ValueError("refresh option must be one of true, false, or wait_for")
+        self.complete_returning = (
+            options.pop("complete_returning", "false").lower() == "true"
+        )
+
         if ELASTICSEARCH_VERSION[0] >= 7:
             self.path = "/{index}".format(index=self.index)
             self.arguments = {"index": self.index}
@@ -68,6 +76,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
             for column in columns.values()
             if column.base_type_name.upper() in {"JSON", "JSONB"}
         }
+        self.scroll_id = None
 
     def get_rel_size(self, quals, columns):
         """ Helps the planner by returning costs.
@@ -94,8 +103,8 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
         try:
             arguments = dict(self.arguments)
-            arguments['sort'] = self._get_sort(quals)
-            sort = arguments['sort']
+            arguments["sort"] = self._get_sort(quals)
+            sort = arguments["sort"]
             query = self._get_query(quals)
 
             if query:
@@ -111,7 +120,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 )
 
             while True:
-                scroll_id = response["_scroll_id"]
+                self.scroll_id = response["_scroll_id"]
 
                 for result in response["hits"]["hits"]:
                     yield self._convert_response_row(result, columns, query, sort)
@@ -119,7 +128,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 if len(response["hits"]["hits"]) < self.scroll_size:
                     return
                 response = self.client.scroll(
-                    scroll_id=scroll_id, scroll=self.scroll_duration
+                    scroll_id=self.scroll_id, scroll=self.scroll_duration
                 )
         except Exception as exception:
             log2pg(
@@ -129,6 +138,12 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 logging.ERROR,
             )
             return
+
+    def end_scan(self):
+        """ Hook called at the end of a foreign scan. """
+        if self.scroll_id:
+            self.client.clear_scroll(scroll_id=self.scroll_id)
+            self.scroll_id = None
 
     def insert(self, new_values):
         """ Insert new documents into Elastic Search """
@@ -150,9 +165,11 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
         try:
             response = self.client.index(
-                id=document_id, body=new_values, **self.arguments
+                id=document_id, body=new_values, refresh=self.refresh, **self.arguments
             )
-            return response
+            if self.complete_returning:
+                return self._read_by_id(response["_id"])
+            return {self.rowid_column: response["_id"]}
         except Exception as exception:
             log2pg(
                 "INDEX for {path}/{document_id} and document {document} failed: {exception}".format(
@@ -175,9 +192,11 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
         try:
             response = self.client.index(
-                id=document_id, body=new_values, **self.arguments
+                id=document_id, body=new_values, refresh=self.refresh, **self.arguments
             )
-            return response
+            if self.complete_returning:
+                return self._read_by_id(response["_id"])
+            return {self.rowid_column: response["_id"]}
         except Exception as exception:
             log2pg(
                 "INDEX for {path}/{document_id} and document {document} failed: {exception}".format(
@@ -228,7 +247,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 for qualifier in quals
                 if qualifier.field_name == self.sort_column and qualifier.value
             ),
-            self.default_sort
+            self.default_sort,
         )
 
     def _convert_response_row(self, row_data, columns, query, sort):
@@ -253,3 +272,27 @@ class ElasticsearchFDW(ForeignDataWrapper):
         if isinstance(value, (list, dict)):
             return json.dumps(value)
         return value
+
+    def _read_by_id(self, row_id):
+        try:
+            arguments = dict(self.arguments)
+            results = self.client.search(
+                body={"query": {"ids": {"values": [row_id]}}}, **arguments
+            )["hits"]["hits"]
+            if results:
+                return self._convert_response_row(results[0], self.columns, None, None)
+            log2pg(
+                "SEARCH for {path} row_id {row_id} returned nothing".format(
+                    path=self.path, row_id=row_id
+                ),
+                logging.WARNING,
+            )
+            return {self.rowid_column: row_id}
+        except Exception as exception:
+            log2pg(
+                "SEARCH for {path} row_id {row_id} failed: {exception}".format(
+                    path=self.path, row_id=row_id, exception=exception
+                ),
+                logging.ERROR,
+            )
+            return {}

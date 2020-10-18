@@ -87,7 +87,8 @@ CREATE FOREIGN TABLE articles_es
         body TEXT,
         metadata JSON,
         query TEXT,
-        score NUMERIC
+        score NUMERIC,
+        sort TEXT
     )
 SERVER multicorn_es
 OPTIONS
@@ -99,6 +100,10 @@ OPTIONS
         rowid_column 'id',
         query_column 'query',
         score_column 'score',
+        default_sort 'last_updated:desc',
+        sort_column 'sort',
+        refresh 'false',
+        complete_returning 'false',
         timeout '20',
         username 'elastic',
         password 'changeme'
@@ -112,17 +117,19 @@ corresponds to the `doc_type` used in prior versions of Elastic Search.
 This corresponds to an Elastic Search index which contains a `title` and `body`
 fields. The other fields have special meaning:
 
- * The `id` field is mapped to the Elastic Search document id
- * The `query` field accepts Elastic Search queries to filter the rows
- * The `score` field returns the score for the document against the query
+ * The `rowid_column` (`id` above) is mapped to the Elastic Search document id
+ * The `query_column` (`query` above) accepts Elastic Search queries to filter the rows
+ * The `score_column` (`score` above) returns the score for the document against the query
+ * The `sort_column` (`sort` above) accepts an Elastic Search column to sort by
+ * The `refresh` option controls if inserts and updates should wait for an index refresh ([Elastic Search documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-refresh.html)). The acceptable values are `"false"` (default), `"wait_for"` and `"true"`
+ * The `complete_returning` options controls if Elastic Search is queries for the document after an insert to support `RETURNING` fields other than the document id. The acceptable values are `"false"` (default) and `"true"`
  * The `timeout` field specifies the connection timeout in seconds
  * The `username` field specifies the basic auth username used
  * The `password` field specifies the basic auth password used
  * Any other options are passed through to the elasticsearch client, use this to specify things like ssl
 
-These are configured using the `rowid_column`, `query_column`,
-`score_column`, `timeout`, `username` and `password` options.
 All of these are optional.
+Enabling `refresh` or `complete_returning` comes with a performance penalty.
 
 To use basic auth you must provide both a username and a password,
 even if the password is blank.
@@ -199,79 +206,49 @@ WHERE
 
 This uses the [URI Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-uri-request.html) from Elastic Search.
 
-#### Using the default sort and sort column
+#### Sorting the Results
 
-Example: Creating the table
-```
-CREATE FOREIGN TABLE test_index (
-    id TEXT,
-    unit TEXT,
-    name TEXT,
-    last_updated timestamp,
-    address TEXT,
-    ipv4 TEXT,
-    company TEXT,
-    credit_card_number TEXT,
-    credit_card_provider TEXT,
-    credit_card_security TEXT,
-    email TEXT,
-    query TEXT,
-    sort TEXT,
-    score NUMERIC
- )
-SERVER multicorn_es
-OPTIONS (
-    host 'localhost',
-    port '9200',
-    index 'test-index',
-    type 'doc',
-    rowid_column 'id',
-    query_column 'query',
-    score_column 'score',
-    default_sort 'last_updated:desc',
-    sort_column 'sort',
-    timeout '20'
- );
-```
+By default Elastic Search returns the documents in score order, descending.
+If you wish to sort by a different field you can use the `sort_column` option.
 
-Not using the sort column in the where clause, as you see it uses the default setting.
+The `sort_column` accepts a column to sort by and a direction, for example `last_updated:desc`.
+This is passed to Elastic Search so it should be the name of the Elastic Search column.
+If you always want sorted results then you can use the `default_sort` option to specify the sort when creating the table.
+
+To break ties you can specify further columns to sort on.
+You just need to separate the columns with a comma, for example `unit:asc,last_updated:desc`.
 
 ```
-test=# select unit,last_updated,sort from test_index limit 10;
-NOTICE:  Sort: last_updated:desc
- unit |        last_updated        |       sort        
-------+----------------------------+-------------------
- 2426 | 2020-09-25 09:47:33.490236 | last_updated:desc
- 2425 | 2020-09-25 09:47:32.477546 | last_updated:desc
- 2424 | 2020-09-25 09:47:31.469799 | last_updated:desc
- 2423 | 2020-09-25 09:47:30.463913 | last_updated:desc
- 2422 | 2020-09-25 09:47:29.456766 | last_updated:desc
- 2421 | 2020-09-25 09:47:28.445883 | last_updated:desc
- 2420 | 2020-09-25 09:47:27.427684 | last_updated:desc
- 2419 | 2020-09-25 09:47:26.414521 | last_updated:desc
- 2418 | 2020-09-25 09:47:25.404088 | last_updated:desc
- 2417 | 2020-09-25 09:47:24.396159 | last_updated:desc
+SELECT
+    id,
+    title,
+    body,
+    metadata,
+    score
+FROM
+    articles_es
+WHERE
+    sort = 'id:asc'
+;
 ```
 
-Using the column to sort by other means. can be a comma seperated list
-```
-unit:asc,last_updated:desc
-```
-```
-test=# select unit,last_updated,sort from test_index WHERE sort = 'unit:asc' limit 10;
- unit |        last_updated        |   sort   
-------+----------------------------+----------
- 0    | 2020-09-25 09:06:42.353452 | unit:asc
- 1    | 2020-09-25 09:06:43.367991 | unit:asc
- 2    | 2020-09-25 09:06:44.379327 | unit:asc
- 3    | 2020-09-25 09:06:45.389997 | unit:asc
- 4    | 2020-09-25 09:06:46.403873 | unit:asc
- 5    | 2020-09-25 09:06:47.41339  | unit:asc
- 6    | 2020-09-25 09:06:48.421894 | unit:asc
- 7    | 2020-09-25 09:06:49.433148 | unit:asc
- 8    | 2020-09-25 09:06:50.445831 | unit:asc
- 9    | 2020-09-25 09:06:51.457017 | unit:asc
-```
+#### Refresh and RETURNING
+
+When inserting or updating documents in Elastic Search the document ID is returned.
+This can be accessed through the `RETURNING` statement without any additional performance loss.
+
+To get further fields requires reading the document from Elastic Search again.
+This comes at a cost because an immediate read after an insert may not return the updated document.
+Elastic Search periodically refreshes the indexes and at that point the document will be available.
+
+To wait for a refresh before returning you can use the `refresh` parameter.
+This accepts three values: `"false"` (the default), `"true"` and `"wait_for"`.
+You can read about them [here](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-refresh.html).
+If you choose to use the refresh setting then it is recommended to use `"wait_for"`.
+
+Once you have chosen to wait for the refresh you can enable full returning support by setting `complete_returning` to `"true"`.
+Both the `refresh` and `complete_returning` options are set during table creation.
+If you do not wish to incur the associated costs for every query then you can create two tables with different settings.
 
 Caveats
 -------
