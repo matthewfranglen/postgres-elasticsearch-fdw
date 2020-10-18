@@ -4,6 +4,8 @@ services:
   postgres:
     build:
       context: ../../
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
     links:
       - elasticsearch
     ports:
