@@ -212,9 +212,14 @@ class ElasticsearchFDW(ForeignDataWrapper):
     def delete(self, document_id):
         """ Delete documents from Elastic Search """
 
+        if self.complete_returning:
+            document = self._read_by_id(document_id)
+        else:
+            document = {self.rowid_column: document_id}
+
         try:
-            response = self.client.delete(id=document_id, **self.arguments)
-            return response
+            self.client.delete(id=document_id, **self.arguments)
+            return document
         except Exception as exception:
             log2pg(
                 "DELETE for {path}/{document_id} failed: {exception}".format(
