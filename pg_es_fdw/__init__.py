@@ -218,7 +218,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
             document = {self.rowid_column: document_id}
 
         try:
-            self.client.delete(id=document_id, **self.arguments)
+            self.client.delete(id=document_id, refresh=self.refresh, **self.arguments)
             return document
         except Exception as exception:
             log2pg(
