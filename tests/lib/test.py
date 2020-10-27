@@ -80,6 +80,16 @@ def perform_tests(pg_version, es_version):
     ):
         success = False
 
+    show_status("Testing delete returning row...")
+    data, error = run_sql_test("delete-return-row.sql")
+    if not show_result(
+        pg_version,
+        es_version,
+        "delete returning row",
+        (data == "39357158 | Momo Thomas", error),
+    ):
+        success = False
+
     return success
 
 
