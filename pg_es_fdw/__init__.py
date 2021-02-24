@@ -31,6 +31,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         self.index = options.pop("index", "")
         self.doc_type = options.pop("type", "")
         self.query_column = options.pop("query_column", None)
+        self.is_json_query = options.pop("json_query", "false").lower() == "true"
         self.score_column = options.pop("score_column", None)
         self.default_sort = options.pop("default_sort", "")
         self.sort_column = options.pop("sort_column", None)
@@ -77,7 +78,6 @@ class ElasticsearchFDW(ForeignDataWrapper):
             if column.base_type_name.upper() in {"JSON", "JSONB"}
         }
         self.scroll_id = None
-        self.is_json_query = self.query_column in self.json_columns
 
     def get_rel_size(self, quals, columns):
         """ Helps the planner by returning costs.
