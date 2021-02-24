@@ -138,7 +138,7 @@ OPTIONS
         type 'article',
         rowid_column 'id',
         query_column 'query',
-        json_query 'true',
+        query_dsl 'true',
         sort_column 'sort',
         score_column 'score',
         timeout '20',
