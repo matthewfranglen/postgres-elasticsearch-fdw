@@ -53,6 +53,13 @@ def perform_tests(pg_version, es_version):
     if not show_result(pg_version, es_version, "query", run_sql_test("query.sql")):
         success = False
 
+    show_status("Testing json query...")
+    data, error = run_sql_test("json-query.sql")
+    if not show_result(
+        pg_version, es_version, "json-query", (data == "Portal Chess", error)
+    ):
+        success = False
+
     show_status("Testing insert returning id...")
     data, error = run_sql_test("insert-return-id.sql")
     if not show_result(
