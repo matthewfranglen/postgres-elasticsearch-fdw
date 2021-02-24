@@ -77,6 +77,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
             if column.base_type_name.upper() in {"JSON", "JSONB"}
         }
         self.scroll_id = None
+        self.json_query = self.query_column in self.json_columns
 
     def get_rel_size(self, quals, columns):
         """ Helps the planner by returning costs.
@@ -85,7 +86,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         try:
             query = self._get_query(quals)
             if query:
-                response = self.client.count(q=query, **self.arguments)
+                response = self.client.count(**query, **self.arguments)
             else:
                 response = self.client.count(**self.arguments)
             return (response["count"], len(columns) * 100)
@@ -111,7 +112,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 response = self.client.search(
                     size=self.scroll_size,
                     scroll=self.scroll_duration,
-                    q=query,
+                    **query,
                     **arguments
                 )
             else:
@@ -233,7 +234,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         if not self.query_column:
             return None
 
-        return next(
+        result = next(
             (
                 qualifier.value
                 for qualifier in quals
@@ -241,6 +242,9 @@ class ElasticsearchFDW(ForeignDataWrapper):
             ),
             None,
         )
+        if self.json_query:
+            return {"body": result}
+        return {"q": result}
 
     def _get_sort(self, quals):
         if not self.sort_column:
@@ -264,7 +268,8 @@ class ElasticsearchFDW(ForeignDataWrapper):
             or column == self.score_column
         }
         if query:
-            return_dict[self.query_column] = query
+            query_value = next(iter(query.values()))
+            return_dict[self.query_column] = query_value
         return_dict[self.sort_column] = sort
         return return_dict
 
