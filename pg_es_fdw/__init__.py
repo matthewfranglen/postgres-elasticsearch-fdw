@@ -31,6 +31,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         self.index = options.pop("index", "")
         self.doc_type = options.pop("type", "")
         self.query_column = options.pop("query_column", None)
+        self.is_json_query = options.pop("query_dsl", "false").lower() == "true"
         self.score_column = options.pop("score_column", None)
         self.default_sort = options.pop("default_sort", "")
         self.sort_column = options.pop("sort_column", None)
@@ -85,7 +86,12 @@ class ElasticsearchFDW(ForeignDataWrapper):
         try:
             query = self._get_query(quals)
             if query:
-                response = self.client.count(q=query, **self.arguments)
+                if self.is_json_query:
+                    response = self.client.count(
+                        body=json.loads(query), **self.arguments
+                    )
+                else:
+                    response = self.client.count(q=query, **self.arguments)
             else:
                 response = self.client.count(**self.arguments)
             return (response["count"], len(columns) * 100)
@@ -108,12 +114,20 @@ class ElasticsearchFDW(ForeignDataWrapper):
             query = self._get_query(quals)
 
             if query:
-                response = self.client.search(
-                    size=self.scroll_size,
-                    scroll=self.scroll_duration,
-                    q=query,
-                    **arguments
-                )
+                if self.is_json_query:
+                    response = self.client.search(
+                        size=self.scroll_size,
+                        scroll=self.scroll_duration,
+                        body=json.loads(query),
+                        **self.arguments
+                    )
+                else:
+                    response = self.client.search(
+                        size=self.scroll_size,
+                        scroll=self.scroll_duration,
+                        q=query,
+                        **self.arguments
+                    )
             else:
                 response = self.client.search(
                     size=self.scroll_size, scroll=self.scroll_duration, **arguments

@@ -120,4 +120,32 @@ OPTIONS
     )
 ;
 
+CREATE FOREIGN TABLE articles_es_json_query
+    (
+        id BIGINT,
+        title TEXT,
+        body TEXT,
+        query TEXT,
+        sort TEXT,
+        score NUMERIC
+    )
+SERVER multicorn_es
+OPTIONS
+    (
+        host 'elasticsearch',
+        port '9200',
+        index 'article-index',
+        type 'article',
+        rowid_column 'id',
+        query_column 'query',
+        query_dsl 'true',
+        sort_column 'sort',
+        score_column 'score',
+        timeout '20',
+        username 'elastic',
+        password 'changeme'
+    )
+;
+
+
 \q
