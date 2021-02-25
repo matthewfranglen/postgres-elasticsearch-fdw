@@ -99,6 +99,7 @@ OPTIONS
         type 'article',
         rowid_column 'id',
         query_column 'query',
+        query_dsl 'false',
         score_column 'score',
         default_sort 'last_updated:desc',
         sort_column 'sort',
@@ -119,6 +120,7 @@ fields. The other fields have special meaning:
 
  * The `rowid_column` (`id` above) is mapped to the Elastic Search document id
  * The `query_column` (`query` above) accepts Elastic Search queries to filter the rows
+ * The `query_dsl` (`false` above) indicates if the query is in the [URI Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-uri-request.html) syntax or the json [Query DSL](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html). The query will use the URI Search syntax by default. To use the Query DSL set this option to `"true"`.
  * The `score_column` (`score` above) returns the score for the document against the query
  * The `sort_column` (`sort` above) accepts an Elastic Search column to sort by
  * The `refresh` option controls if inserts and updates should wait for an index refresh ([Elastic Search documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-refresh.html)). The acceptable values are `"false"` (default), `"wait_for"` and `"true"`
@@ -188,7 +190,9 @@ FROM
 ;
 ```
 
-To filter the documents using a query:
+##### URI Search Query
+
+To filter the documents using a URI Search query:
 
 ```sql
 SELECT
@@ -205,6 +209,29 @@ WHERE
 ```
 
 This uses the [URI Search](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-uri-request.html) from Elastic Search.
+This is the default search syntax, and can be explicitly selected by setting the `query_dsl` option to `"false"`.
+
+##### Query DSL Query
+
+To filter the documents using a Query DSL query you must ensure that you have set the `query_dsl` option to `"true"` when creating the table.
+
+```sql
+SELECT
+    id,
+    title,
+    body,
+    metadata,
+    score
+FROM
+    articles_es
+WHERE
+    query = '{"query":{"bool":{"filter":[{"term":{"body":"chess"}}]}}}'
+;
+```
+
+This uses the [Query DSL](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html) from Elastic Search.
+This is not the default search syntax and must be specifically enabled.
+You cannot enable this on a per-query basis.
 
 #### Sorting the Results
 
