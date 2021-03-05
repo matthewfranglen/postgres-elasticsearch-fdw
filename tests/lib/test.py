@@ -60,6 +60,12 @@ def perform_tests(pg_version, es_version):
     ):
         success = False
 
+    show_status("Testing insert Chinese...")
+    if not show_result(
+        pg_version, es_version, "insert chinese", run_sql_test("insert-chinese.sql")
+    ):
+        success = False
+
     show_status("Testing insert returning id...")
     data, error = run_sql_test("insert-return-id.sql")
     if not show_result(
