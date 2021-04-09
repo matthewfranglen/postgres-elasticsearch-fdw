@@ -15,16 +15,17 @@ SYNOPSIS
 | 6 | `sudo pip install "elasticsearch>=6,<7"` |
 | 7 | `sudo pip install "elasticsearch>=7,<8"` |
 
-| PostgreSQL | Dependency Installation Command |
-|------------|---------------------------------|
-| 9.4 | `sudo apt-get install postgresql-9.4-python-multicorn` |
-| 9.5 | `sudo apt-get install postgresql-9.5-python-multicorn` |
-| 9.6 | `sudo apt-get install postgresql-9.6-python-multicorn` |
-| 10 | `sudo apt-get install postgresql-10-python-multicorn` |
-| 11 | `sudo apt-get install postgresql-11-python-multicorn` |
-| 12 | `sudo apt-get install postgresql-12-python3-multicorn` |
+| PostgreSQL | Dependency Installation Command                        |
+|------------|--------------------------------------------------------|
+| 9.4        | `sudo apt-get install postgresql-9.4-python-multicorn` |
+| 9.5        | `sudo apt-get install postgresql-9.5-python-multicorn` |
+| 9.6        | `sudo apt-get install postgresql-9.6-python-multicorn` |
+| 10         | `sudo apt-get install postgresql-10-python-multicorn`  |
+| 11         | `sudo apt-get install postgresql-11-python-multicorn`  |
+| 12         | `sudo apt-get install postgresql-12-python3-multicorn` |
+| 13         | `sudo apt-get install postgresql-13-python3-multicorn` |
 
-Please note that the Debian package for Multicorn on PostgreSQL 12 requires Python 3.
+Please note that the Debian package for Multicorn on PostgreSQL 12+ requires Python 3.
 
 ### Installation
 
