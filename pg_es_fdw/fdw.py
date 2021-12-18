@@ -60,11 +60,11 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
         try:
             query = self.options.get_query(quals)
-            query_arguments = self.options.get_query_arguments(query)
             sort = self.options.get_sort(quals)
-            pagination_arguments = self.options.get_pagination_arguments(sort)
+            arguments = self.options.get_query_arguments(query)
+            arguments.update(self.options.get_pagination_arguments(sort))
 
-            response = self.client.search(**query_arguments, **pagination_arguments)
+            response = self.client.search(**arguments)
 
             while True:
                 self.scroll_id = response["_scroll_id"]

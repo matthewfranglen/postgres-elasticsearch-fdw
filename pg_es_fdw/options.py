@@ -62,18 +62,22 @@ class ElasticsearchFDWOptions(object):
         Get the elasticsearch client options that identify the query, path and doc type
         """
         # (str) -> Dict[str, Any]
-        if not query:
-            return self.arguments
-        if self.is_json_query:
-            return {"body": json.loads(query), **self.arguments}
-        return {"q": query, **self.arguments}
+        arguments = self.arguments.copy()
+        if query:
+            if self.is_json_query:
+                arguments["body"] = json.loads(query)
+            else:
+                arguments["q"] = query
+        return arguments
 
     def get_id_arguments(self, row_id):
         """
         Get the elasticsearch client options that identify the query, path and doc type
         """
         # (str) -> Dict[str, Any]
-        return {"body": {"query": {"ids": {"values": [row_id]}}}, **self.arguments}
+        arguments = self.arguments.copy()
+        arguments["body"] = {"query": {"ids": {"values": [row_id]}}}
+        return arguments
 
     def get_sort(self, quals):
         """
@@ -83,7 +87,7 @@ class ElasticsearchFDWOptions(object):
         # quals - A list of Qual instances describing the filters applied to this scan.
         return _get_qual_value(quals, name=self.sort_column, default=self.default_sort)
 
-    def get_pagination_arguments(self, sort)
+    def get_pagination_arguments(self, sort):
         """
         Get the elasticsearch client options that identify the sort, page size and scroll duration
         """
