@@ -80,7 +80,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         except Exception as exception:
             log2pg(
                 "SEARCH for {path} failed: {exception}".format(
-                    path=self.path, exception=exception
+                    path=self.options.path, exception=exception
                 ),
                 logging.ERROR,
             )
@@ -120,7 +120,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         except Exception as exception:
             log2pg(
                 "INDEX for {path}/{document_id} and document {document} failed: {exception}".format(
-                    path=self.path,
+                    path=self.options.path,
                     document_id=document_id,
                     document=new_values,
                     exception=exception,
@@ -147,7 +147,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         except Exception as exception:
             log2pg(
                 "INDEX for {path}/{document_id} and document {document} failed: {exception}".format(
-                    path=self.path,
+                    path=self.options.path,
                     document_id=document_id,
                     document=new_values,
                     exception=exception,
@@ -170,7 +170,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         except Exception as exception:
             log2pg(
                 "DELETE for {path}/{document_id} failed: {exception}".format(
-                    path=self.path, document_id=document_id, exception=exception
+                    path=self.options.path, document_id=document_id, exception=exception
                 ),
                 logging.ERROR,
             )
@@ -207,7 +207,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 return self._convert_response_row(results[0], self.columns, None, None)
             log2pg(
                 "SEARCH for {path} row_id {row_id} returned nothing".format(
-                    path=self.path, row_id=row_id
+                    path=self.options.path, row_id=row_id
                 ),
                 logging.WARNING,
             )
@@ -215,7 +215,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         except Exception as exception:
             log2pg(
                 "SEARCH for {path} row_id {row_id} failed: {exception}".format(
-                    path=self.path, row_id=row_id, exception=exception
+                    path=self.options.path, row_id=row_id, exception=exception
                 ),
                 logging.ERROR,
             )
