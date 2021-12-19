@@ -15,7 +15,7 @@ class ElasticsearchFDWOptions(object):
     """
 
     def __init__(self, options):
-        # type: (Dict[str, str]) -> None
+        # (Dict[str, str]) -> None
         self.path, self.arguments = _get_path_and_arguments(options)
 
         self.query_column = options.pop("query_column", None)
@@ -41,7 +41,7 @@ class ElasticsearchFDWOptions(object):
         """
         Creates an elasticsearch client from the options
         """
-        # type: () -> Elasticsearch
+        # () -> Elasticsearch
         return Elasticsearch(
             [{"host": self.host, "port": self.port}],
             http_auth=self.auth,
@@ -155,7 +155,7 @@ def _int_option(options, key, default):
     # (Dict[str, str], str, int) -> int
     if key not in options:
         return default
-    return int(options[key])
+    return int(options.pop(key))
 
 
 def _get_qual_value(quals, name, default):
