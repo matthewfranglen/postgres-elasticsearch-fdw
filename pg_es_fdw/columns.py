@@ -1,7 +1,7 @@
 """
 Handlers for different column types
 """
-# pylint: disable=useless-object-inheritance
+# pylint: disable=useless-object-inheritance, too-many-arguments
 import logging
 import json
 from abc import ABCMeta, abstractmethod
@@ -114,17 +114,18 @@ class Columns(object):
         # (Dict[str, Any]) -> bool
         return self.id_column.name in data
 
-    def deserialize(self, query, sort, row, columns):
+    def deserialize(self, row, query, sort, columns):
         """
         Deserialize the requested columns into the postgres format from the elasticsearch response
         """
-        # (Optional[str], Optional[str], Dict[str, Any], List[str]) -> Dict[str, Any]
-        data = {}
+        # (Dict[str, Any], Optional[str], Optional[str], Optional[List[str]]) -> Dict[str, Any]
+        if columns is not None:
+            columns = set(columns)
 
+        data = {}
         for column in [self.id_column, self.score_column] + self.columns:
-            if column.name not in columns:
-                continue
-            data[column.name] = column.deserialize(row)
+            if columns is None or column.name in columns:
+                data[column.name] = column.deserialize(row)
 
         if query:
             data[self.query_column] = query

@@ -30,13 +30,6 @@ class ElasticsearchFDW(ForeignDataWrapper):
         self.options = ElasticsearchFDWOptions(options)
         self.columns = make_columns(options=self.options, columns=columns)
         self.client = self.options.make_client()
-
-        self.columns = columns
-        self.json_columns = {
-            column.column_name
-            for column in columns.values()
-            if column.base_type_name.upper() in {"JSON", "JSONB"}
-        }
         self.scroll_id = None
 
     def get_rel_size(self, quals, columns):
@@ -73,7 +66,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
                 for row in response["hits"]["hits"]:
                     yield self.columns.deserialize(
-                        query=query, sort=sort, row=row, columns=columns
+                        row=row, query=query, sort=sort, columns=columns
                     )
 
                 if len(response["hits"]["hits"]) < self.options.scroll_size:
@@ -98,26 +91,12 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
     def insert(self, new_values):
         """ Insert new documents into Elastic Search """
-
-        if self.options.rowid_column not in new_values:
-            log2pg(
-                'INSERT requires "{rowid}" column. Missing in: {values}'.format(
-                    rowid=self.options.rowid_column, values=new_values
-                ),
-                logging.ERROR,
-            )
-            return (0, 0)
-
-        document_id = new_values[self.options.rowid_column]
-        new_values.pop(self.options.rowid_column, None)
-
-        for key in self.json_columns.intersection(new_values.keys()):
-            new_values[key] = json.loads(new_values[key])
+        document_id, document = self.columns.serialize(new_values)
 
         try:
             response = self.client.index(
                 id=document_id,
-                body=new_values,
+                body=document,
                 refresh=self.options.refresh,
                 **self.options.arguments
             )
@@ -138,16 +117,12 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
     def update(self, document_id, new_values):
         """ Update existing documents in Elastic Search """
-
-        new_values.pop(self.options.rowid_column, None)
-
-        for key in self.json_columns.intersection(new_values.keys()):
-            new_values[key] = json.loads(new_values[key])
+        _, document = self.columns.serialize(new_values)
 
         try:
             response = self.client.index(
                 id=document_id,
-                body=new_values,
+                body=document,
                 refresh=self.options.refresh,
                 **self.options.arguments
             )
@@ -188,35 +163,14 @@ class ElasticsearchFDW(ForeignDataWrapper):
             )
             return (0, 0)
 
-    def _convert_response_row(self, row_data, columns, query, sort):
-        return_dict = {
-            column: self._convert_response_column(column, row_data)
-            for column in columns
-            if column in row_data["_source"]
-            or column == self.options.rowid_column
-            or column == self.options.score_column
-        }
-        if query:
-            return_dict[self.options.query_column] = query
-        return_dict[self.options.sort_column] = sort
-        return return_dict
-
-    def _convert_response_column(self, column, row_data):
-        if column == self.options.rowid_column:
-            return row_data["_id"]
-        if column == self.options.score_column:
-            return row_data["_score"]
-        value = row_data["_source"][column]
-        if isinstance(value, (list, dict)):
-            return json.dumps(value)
-        return value
-
     def _read_by_id(self, row_id):
         try:
             arguments = self.options.get_id_arguments(row_id)
             results = self.client.search(**arguments)["hits"]["hits"]
             if results:
-                return self._convert_response_row(results[0], self.columns, None, None)
+                return self.columns.deserialize(
+                    row=results[0], query=None, sort=None, columns=None
+                )
             log2pg(
                 "SEARCH for {path} row_id {row_id} returned nothing".format(
                     path=self.options.path, row_id=row_id
