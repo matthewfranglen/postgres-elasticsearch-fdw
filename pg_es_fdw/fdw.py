@@ -72,10 +72,10 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 for result in response["hits"]["hits"]:
                     yield self._convert_response_row(result, columns, query, sort)
 
-                if len(response["hits"]["hits"]) < self.scroll_size:
+                if len(response["hits"]["hits"]) < self.options.scroll_size:
                     return
                 response = self.client.scroll(
-                    scroll_id=self.scroll_id, scroll=self.scroll_duration
+                    scroll_id=self.scroll_id, scroll=self.options.scroll_duration
                 )
         except Exception as exception:
             log2pg(
@@ -95,28 +95,31 @@ class ElasticsearchFDW(ForeignDataWrapper):
     def insert(self, new_values):
         """ Insert new documents into Elastic Search """
 
-        if self.rowid_column not in new_values:
+        if self.options.rowid_column not in new_values:
             log2pg(
                 'INSERT requires "{rowid}" column. Missing in: {values}'.format(
-                    rowid=self.rowid_column, values=new_values
+                    rowid=self.options.rowid_column, values=new_values
                 ),
                 logging.ERROR,
             )
             return (0, 0)
 
-        document_id = new_values[self.rowid_column]
-        new_values.pop(self.rowid_column, None)
+        document_id = new_values[self.options.rowid_column]
+        new_values.pop(self.options.rowid_column, None)
 
         for key in self.json_columns.intersection(new_values.keys()):
             new_values[key] = json.loads(new_values[key])
 
         try:
             response = self.client.index(
-                id=document_id, body=new_values, refresh=self.refresh, **self.arguments
+                id=document_id,
+                body=new_values,
+                refresh=self.options.refresh,
+                **self.options.arguments
             )
-            if self.complete_returning:
+            if self.options.complete_returning:
                 return self._read_by_id(response["_id"])
-            return {self.rowid_column: response["_id"]}
+            return {self.options.rowid_column: response["_id"]}
         except Exception as exception:
             log2pg(
                 "INDEX for {path}/{document_id} and document {document} failed: {exception}".format(
@@ -132,18 +135,21 @@ class ElasticsearchFDW(ForeignDataWrapper):
     def update(self, document_id, new_values):
         """ Update existing documents in Elastic Search """
 
-        new_values.pop(self.rowid_column, None)
+        new_values.pop(self.options.rowid_column, None)
 
         for key in self.json_columns.intersection(new_values.keys()):
             new_values[key] = json.loads(new_values[key])
 
         try:
             response = self.client.index(
-                id=document_id, body=new_values, refresh=self.refresh, **self.arguments
+                id=document_id,
+                body=new_values,
+                refresh=self.options.refresh,
+                **self.options.arguments
             )
             if self.complete_returning:
                 return self._read_by_id(response["_id"])
-            return {self.rowid_column: response["_id"]}
+            return {self.options.rowid_column: response["_id"]}
         except Exception as exception:
             log2pg(
                 "INDEX for {path}/{document_id} and document {document} failed: {exception}".format(
@@ -159,13 +165,15 @@ class ElasticsearchFDW(ForeignDataWrapper):
     def delete(self, document_id):
         """ Delete documents from Elastic Search """
 
-        if self.complete_returning:
+        if self.options.complete_returning:
             document = self._read_by_id(document_id)
         else:
-            document = {self.rowid_column: document_id}
+            document = {self.options.rowid_column: document_id}
 
         try:
-            self.client.delete(id=document_id, refresh=self.refresh, **self.arguments)
+            self.client.delete(
+                id=document_id, refresh=self.options.refresh, **self.options.arguments
+            )
             return document
         except Exception as exception:
             log2pg(
@@ -181,18 +189,18 @@ class ElasticsearchFDW(ForeignDataWrapper):
             column: self._convert_response_column(column, row_data)
             for column in columns
             if column in row_data["_source"]
-            or column == self.rowid_column
-            or column == self.score_column
+            or column == self.options.rowid_column
+            or column == self.options.score_column
         }
         if query:
-            return_dict[self.query_column] = query
-        return_dict[self.sort_column] = sort
+            return_dict[self.options.query_column] = query
+        return_dict[self.options.sort_column] = sort
         return return_dict
 
     def _convert_response_column(self, column, row_data):
-        if column == self.rowid_column:
+        if column == self.options.rowid_column:
             return row_data["_id"]
-        if column == self.score_column:
+        if column == self.options.score_column:
             return row_data["_score"]
         value = row_data["_source"][column]
         if isinstance(value, (list, dict)):
@@ -211,7 +219,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
                 ),
                 logging.WARNING,
             )
-            return {self.rowid_column: row_id}
+            return {self.options.rowid_column: row_id}
         except Exception as exception:
             log2pg(
                 "SEARCH for {path} row_id {row_id} failed: {exception}".format(
