@@ -21,7 +21,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
             column name should be subsequently present in every returned
             resultset. """
 
-        return self._rowid_column
+        return self.options.rowid_column
 
     def __init__(self, options, columns):
         super(ElasticsearchFDW, self).__init__(options, columns)

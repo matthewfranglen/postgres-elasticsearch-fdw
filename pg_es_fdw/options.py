@@ -25,7 +25,7 @@ class ElasticsearchFDWOptions(object):
         self.sort_column = options.pop("sort_column", None)
         self.scroll_size = _int_option(options, key="scroll_size", default=1000)
         self.scroll_duration = options.pop("scroll_duration", "10m")
-        self._rowid_column = options.pop("rowid_column", "id")
+        self.rowid_column = options.pop("rowid_column", "id")
         self.refresh = _get_refresh(options)
         self.complete_returning = _boolean_option(
             options, key="complete_returning", default=False
