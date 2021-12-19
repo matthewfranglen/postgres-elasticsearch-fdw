@@ -4,15 +4,17 @@ Handlers for different column types
 # pylint: disable=useless-object-inheritance
 import logging
 import json
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
 from multicorn.utils import log_to_postgres as log2pg  # pylint: disable=import-error
 
 
-class Column(ABC):
+class Column(object):
     """
     The handler for a single column
     """
+
+    __metaclass__ = ABCMeta
 
     def __init__(self, name):
         # (str) -> None
@@ -96,7 +98,7 @@ class Columns(object):
     The elasticsearch table is never queried for the structure, it is assumed to be compatible.
     """
 
-    def __init__(self, *, id_column, score_column, query_column, sort_column, columns):
+    def __init__(self, id_column, score_column, query_column, sort_column, columns):
         # (Column, Optional[Column], Optional[str], Optional[str], List[Column]) -> None
         self.id_column = id_column
         self.score_column = score_column
