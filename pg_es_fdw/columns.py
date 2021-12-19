@@ -18,14 +18,14 @@ class Column(ABC):
         # (str) -> None
         self.name = name
 
-    def _value(self, response):
+    def _value(self, row):
         """
         Get the named value from the elasticsearch response
         """
-        return response["_source"][self.name]
+        return row["_source"][self.name]
 
     @abstractmethod
-    def deserialize(self, response):
+    def deserialize(self, row):
         """
         Convert the value from the elasticsearch representation to the postgres representation
         """
@@ -47,8 +47,8 @@ class IdColumn(Column):
     The handler for the elasticsearch document id
     """
 
-    def deserialize(self, response):
-        return response["_id"]
+    def deserialize(self, row):
+        return row["_id"]
 
     def serialize(self, value):
         raise AssertionError("The id column is not serialized into the body")
@@ -59,8 +59,8 @@ class ScoreColumn(Column):
     The handler for the elasticsearch search score
     """
 
-    def deserialize(self, response):
-        return response["_score"]
+    def deserialize(self, row):
+        return row["_score"]
 
     def serialize(self, value):
         raise AssertionError("The score column is not serialized into the body")
@@ -71,8 +71,8 @@ class BasicColumn(Column):
     The handler for types that share representations between elasticsearch and postgres
     """
 
-    def deserialize(self, response):
-        return self._value(response)
+    def deserialize(self, row):
+        return self._value(row)
 
     def serialize(self, value):
         return value
@@ -83,8 +83,8 @@ class JsonColumn(Column):
     The handler for JSON and JSONB columns
     """
 
-    def deserialize(self, response):
-        return json.dumps(self._value(response))
+    def deserialize(self, row):
+        return json.dumps(self._value(row))
 
     def serialize(self, value):
         return json.loads(value)
@@ -96,11 +96,12 @@ class Columns(object):
     The elasticsearch table is never queried for the structure, it is assumed to be compatible.
     """
 
-    def __init__(self, id_column, score_column, query_column, columns):
-        # (Column, Optional[Column], Optional[str], List[Column]) -> None
+    def __init__(self, *, id_column, score_column, query_column, sort_column, columns):
+        # (Column, Optional[Column], Optional[str], Optional[str], List[Column]) -> None
         self.id_column = id_column
         self.score_column = score_column
         self.query_column = query_column
+        self.sort_column = sort_column
         self.columns = columns
         self.columns_by_name = {column.name: column for column in columns}
 
@@ -111,20 +112,22 @@ class Columns(object):
         # (Dict[str, Any]) -> bool
         return self.id_column.name in data
 
-    def deserialize(self, query, response, columns):
+    def deserialize(self, query, sort, row, columns):
         """
         Deserialize the requested columns into the postgres format from the elasticsearch response
         """
-        # (Optional[str], Dict[str, Any], List[str]) -> Dict[str, Any]
+        # (Optional[str], Optional[str], Dict[str, Any], List[str]) -> Dict[str, Any]
         data = {}
 
         for column in [self.id_column, self.score_column] + self.columns:
             if column.name not in columns:
                 continue
-            data[column.name] = column.deserialize(response)
+            data[column.name] = column.deserialize(row)
 
         if query:
             data[self.query_column] = query
+        if sort:
+            data[self.sort_column] = sort
 
         return data
 
@@ -182,12 +185,18 @@ def make_columns(options, columns):
         columns.pop(options.query_column)
     else:
         query_column = None
+    if options.sort_column:
+        sort_column = options.sort_column
+        columns.pop(options.sort_column)
+    else:
+        sort_column = None
 
     columns = [make_column(options, name, column) for name, column in columns.items()]
     return Columns(
         id_column=id_column,
         score_column=score_column,
         query_column=query_column,
+        sort_column=sort_column,
         columns=columns,
     )
 

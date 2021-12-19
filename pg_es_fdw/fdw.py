@@ -7,6 +7,7 @@ import logging
 from multicorn import ForeignDataWrapper
 from multicorn.utils import log_to_postgres as log2pg
 from .options import ElasticsearchFDWOptions
+from .columns import make_columns
 
 
 class ElasticsearchFDW(ForeignDataWrapper):
@@ -27,6 +28,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         super(ElasticsearchFDW, self).__init__(options, columns)
 
         self.options = ElasticsearchFDWOptions(options)
+        self.columns = make_columns(options=self.options, columns=columns)
         self.client = self.options.make_client()
 
         self.columns = columns
@@ -69,8 +71,10 @@ class ElasticsearchFDW(ForeignDataWrapper):
             while True:
                 self.scroll_id = response["_scroll_id"]
 
-                for result in response["hits"]["hits"]:
-                    yield self._convert_response_row(result, columns, query, sort)
+                for row in response["hits"]["hits"]:
+                    yield self.columns.deserialize(
+                        query=query, sort=sort, row=row, columns=columns
+                    )
 
                 if len(response["hits"]["hits"]) < self.options.scroll_size:
                     return
