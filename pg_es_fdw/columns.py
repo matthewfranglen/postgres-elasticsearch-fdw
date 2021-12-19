@@ -1,8 +1,12 @@
 """
 Handlers for different column types
 """
-from abc import ABC, abstractmethod
+# pylint: disable=useless-object-inheritance
+import logging
 import json
+from abc import ABC, abstractmethod
+
+from multicorn.utils import log_to_postgres as log2pg  # pylint: disable=import-error
 
 
 class Column(ABC):
@@ -92,11 +96,13 @@ class Columns(object):
     The elasticsearch table is never queried for the structure, it is assumed to be compatible.
     """
 
-    def __init__(self, id_column, score_column, columns):
-        # (Column, Optional[Column], List[Column]) -> None
+    def __init__(self, id_column, score_column, query_column, columns):
+        # (Column, Optional[Column], Optional[str], List[Column]) -> None
         self.id_column = id_column
         self.score_column = score_column
+        self.query_column = query_column
         self.columns = columns
+        self.columns_by_name = {column.name: column for column in columns}
 
     def has_id(self, data):
         """
@@ -105,11 +111,11 @@ class Columns(object):
         # (Dict[str, Any]) -> bool
         return self.id_column.name in data
 
-    def deserialize(self, response, columns):
+    def deserialize(self, query, response, columns):
         """
         Deserialize the requested columns into the postgres format from the elasticsearch response
         """
-        # (Dict[str, Any], List[str]) -> Dict[str, Any]
+        # (Optional[str], Dict[str, Any], List[str]) -> Dict[str, Any]
         data = {}
 
         for column in [self.id_column, self.score_column] + self.columns:
@@ -117,9 +123,86 @@ class Columns(object):
                 continue
             data[column.name] = column.deserialize(response)
 
+        if query:
+            data[self.query_column] = query
+
         return data
 
-    def serialize(self, value):
+    def serialize(self, row):
         """
-        Serialize the data into the elasticsearch format from the postgres format
+        Serialize the data into the elasticsearch format from the postgres format.
+        This returns the id first and then the data.
+        The score column is never serialized.
         """
+        # (Dict[str, Any]) -> Tuple[str, Dict[str, Any]]
+
+        rowid_column = self.id_column.name
+        if rowid_column not in row:
+            message = 'INSERT/UPDATE requires "{rowid}" column. Missing in: {values}'.format(
+                rowid=rowid_column, values=row
+            )
+            log2pg(message, logging.ERROR)
+            # The insert or update cannot proceed so the transaction should abort.
+            # It can happen that the log2pg method is unimplemented, so this
+            # value error will abort the operation.
+            #
+            # https://multicorn.org/implementing-a-fdw/#error-reporting
+            # logging.ERROR:
+            #   Maps to a PostgreSQL ERROR message. An ERROR message is passed
+            #   to the client, as well as in the server logs. An ERROR message
+            #   results in the current transaction being aborted. Think about
+            #   the consequences when you use it!
+            raise ValueError(message)
+
+        document_id = row.pop(rowid_column)
+        columns_by_name = self.columns_by_name
+        data = {
+            key: columns_by_name[key].serialize(value) for key, value in row.items()
+        }
+
+        return document_id, data
+
+
+def make_columns(options, columns):
+    """
+    Create a Columns object from the options and columns used to initialize the fdw
+    """
+    # (ElasticsearchFDWOptions, Dict[str, multicorn.ColumnDefinition]) -> Columns
+    columns = columns.copy()
+
+    id_column = IdColumn(name=options.rowid_column)
+    columns.pop(options.rowid_column, None)
+    if options.score_column:
+        score_column = ScoreColumn(name=options.score_column)
+        columns.pop(options.score_column)
+    else:
+        score_column = None
+    if options.query_column:
+        query_column = options.query_column
+        columns.pop(options.query_column)
+    else:
+        query_column = None
+
+    columns = [make_column(options, name, column) for name, column in columns.items()]
+    return Columns(
+        id_column=id_column,
+        score_column=score_column,
+        query_column=query_column,
+        columns=columns,
+    )
+
+
+def make_column(options, name, column):
+    """
+    Create the individual column definition from the options and column provided
+    """
+    # (ElasticsearchFDWOptions, str, multicorn.ColumnDefinition) -> Column
+    assert name not in {
+        options.rowid_column,
+        options.score_column,
+        options.query_column,
+    }, "Programmer error: bad name passed to make_column {name}".format(name=name)
+
+    if column.base_type_name.upper() in {"JSON", "JSONB"}:
+        return JsonColumn(name=name)
+    return BasicColumn(name=name)
