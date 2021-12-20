@@ -166,7 +166,9 @@ class Columns(object):
         document_id = row.pop(rowid_column)
         columns_by_name = self.columns_by_name
         data = {
-            key: columns_by_name[key].serialize(value) for key, value in row.items()
+            key: columns_by_name[key].serialize(value)
+            for key, value in row.items()
+            if key in columns_by_name
         }
 
         return document_id, data
@@ -182,19 +184,16 @@ def make_columns(options, columns):
     id_column = IdColumn(name=options.rowid_column)
     columns.pop(options.rowid_column, None)
     if options.score_column:
-        # this is dropped as it can only be read and is handled separately
         score_column = ScoreColumn(name=options.score_column)
         del columns[options.score_column]
     else:
         score_column = None
     if options.query_column:
-        # this is dropped as it is not passed to elasticsearch directly
         query_column = options.query_column
         del columns[options.query_column]
     else:
         query_column = None
     if options.sort_column:
-        # this is dropped as it is handled separately as an argument to the client
         sort_column = options.sort_column
         del columns[options.sort_column]
     else:
