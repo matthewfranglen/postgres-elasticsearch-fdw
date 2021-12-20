@@ -179,18 +179,19 @@ def make_columns(options, columns):
     id_column = IdColumn(name=options.rowid_column)
     columns.pop(options.rowid_column, None)
     if options.score_column:
+        # this is dropped as it can only be read and is handled separately
         score_column = ScoreColumn(name=options.score_column)
         columns.pop(options.score_column)
     else:
         score_column = None
     if options.query_column:
-        query_column = options.query_column
-        columns.pop(options.query_column)
+        # this is dropped as it is not passed to elasticsearch directly
+        query_column = columns.pop(options.query_column)
     else:
         query_column = None
     if options.sort_column:
-        sort_column = options.sort_column
-        columns.pop(options.sort_column)
+        # this is dropped as it is handled separately as an argument to the client
+        sort_column = columns.pop(options.sort_column)
     else:
         sort_column = None
 
