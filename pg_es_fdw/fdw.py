@@ -1,7 +1,6 @@
 """ Elastic Search foreign data wrapper """
 # pylint: disable=too-many-instance-attributes, import-error, unexpected-keyword-arg, broad-except, line-too-long
 
-import json
 import logging
 
 from multicorn import ForeignDataWrapper

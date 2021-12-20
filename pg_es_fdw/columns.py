@@ -125,8 +125,7 @@ class Columns(object):
         data = {}
         for column in [self.id_column, self.score_column] + self.columns:
             if columns is None:
-                if column in data:
-                    data[column.name] = column.deserialize(row)
+                data[column.name] = column.deserialize(row)
             elif column.name in columns:
                 data[column.name] = column.deserialize(row)
 
