@@ -124,7 +124,10 @@ class Columns(object):
 
         data = {}
         for column in [self.id_column, self.score_column] + self.columns:
-            if columns is None or column.name in columns:
+            if columns is None:
+                if column in data:
+                    data[column.name] = column.deserialize(row)
+            elif column.name in columns:
                 data[column.name] = column.deserialize(row)
 
         if query:
@@ -181,17 +184,19 @@ def make_columns(options, columns):
     if options.score_column:
         # this is dropped as it can only be read and is handled separately
         score_column = ScoreColumn(name=options.score_column)
-        columns.pop(options.score_column)
+        del columns[options.score_column]
     else:
         score_column = None
     if options.query_column:
         # this is dropped as it is not passed to elasticsearch directly
-        query_column = columns.pop(options.query_column)
+        query_column = options.query_column
+        del columns[options.query_column]
     else:
         query_column = None
     if options.sort_column:
         # this is dropped as it is handled separately as an argument to the client
-        sort_column = columns.pop(options.sort_column)
+        sort_column = options.sort_column
+        del columns[options.sort_column]
     else:
         sort_column = None
 
