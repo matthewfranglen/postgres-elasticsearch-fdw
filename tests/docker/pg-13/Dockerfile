@@ -8,7 +8,7 @@ RUN DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true dpkg-reconfi
 RUN apt-get update
 RUN apt-get install --yes    \
     git                      \
-    postgresql-server-dev-14 \
+    postgresql-server-dev-13 \
     python3                  \
     python3-dev              \
     python3-setuptools       \
