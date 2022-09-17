@@ -21,7 +21,7 @@ class ElasticsearchFDWOptions(object):
         self.query_column = options.pop("query_column", None)
         self.is_json_query = _boolean_option(options, key="query_dsl", default=False)
         self.score_column = options.pop("score_column", None)
-        self.default_sort = options.pop("default_sort", "")
+        self.default_sort = options.pop("default_sort", None)
         self.sort_column = options.pop("sort_column", None)
         self.scroll_size = _int_option(options, key="scroll_size", default=1000)
         self.scroll_duration = options.pop("scroll_duration", "10m")

@@ -34,8 +34,16 @@ format : $(DEP_PROJECT_PYTHON)
 	poetry run black pg_es_fdw tests
 
 ## Run Tests
+test : PG_VERSIONS ?= 9.5 9.6 10 11 12 13 14 15
+test : ES_VERSIONS ?= 5 6 6-auth 7
 test : $(DEP_PROJECT_PYTHON)
-	poetry run tests/run.py --pg 9.4 9.5 9.6 10 11 12 13 --es 5 6 6-auth 7
+	poetry run tests/run.py --pg $(PG_VERSIONS) --es $(ES_VERSIONS)
+
+## Launch specific postgres and elasticsearch containers
+start : PG_VERSION ?= 13
+start : ES_VERSION ?= 7
+start : $(DEP_PROJECT_PYTHON)
+	poetry run tests/start.py --pg $(PG_VERSION) --es $(ES_VERSION)
 
 ## Publish to pypi
 publish : $(DEP_PROJECT_PYTHON)
