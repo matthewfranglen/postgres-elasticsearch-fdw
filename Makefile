@@ -35,7 +35,7 @@ format : $(DEP_PROJECT_PYTHON)
 
 ## Run Tests
 test : $(DEP_PROJECT_PYTHON)
-	poetry run tests/run.py --pg 9.4 9.5 9.6 10 11 12 13 --es 5 6 6-auth 7
+	poetry run tests/run.py --pg 9.4 9.5 9.6 10 11 12 13 14 15 --es 5 6 6-auth 7
 
 ## Launch specific postgres and elasticsearch containers
 start : PG_VERSION ?= 13
