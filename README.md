@@ -27,6 +27,21 @@ SYNOPSIS
 
 Please note that the Debian package for Multicorn on PostgreSQL 12+ requires Python 3.
 
+#### PostgreSQL 13+
+
+For PostgreSQL versions 13+ you can use [Multicorn 2](https://github.com/pgsql-io/multicorn2)
+which is actively maintained. You can consult the [Multicorn 2 README](https://github.com/pgsql-io/multicorn2#using-in-oscgio)
+for installation instructions, or review the Dockerfiles associated with this
+project to see how I have installed it. I would recommend using the OSCG.IO
+approach as it seems to be the easiest.
+
+| PostgreSQL | Dockerfile                                                                                                            |
+|------------|-----------------------------------------------------------------------------------------------------------------------|
+| 13         | [Dockerfile](https://github.com/matthewfranglen/postgres-elasticsearch-fdw/blob/master/tests/docker/pg-13/Dockerfile) |
+| 14         | [Dockerfile](https://github.com/matthewfranglen/postgres-elasticsearch-fdw/blob/master/tests/docker/pg-14/Dockerfile) |
+| 15         | [Dockerfile](https://github.com/matthewfranglen/postgres-elasticsearch-fdw/blob/master/tests/docker/pg-15/Dockerfile) |
+
+
 ### Installation
 
 This requires installation on the PostgreSQL server, and has system level dependencies.
