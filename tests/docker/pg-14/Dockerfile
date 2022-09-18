@@ -1,4 +1,4 @@
-FROM postgres:13
+FROM postgres:14
 
 ARG ES_PIP_VERSION
 
@@ -7,8 +7,9 @@ RUN echo "en_US UTF-8" >> /etc/locale.gen
 RUN DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true dpkg-reconfigure locales
 RUN apt-get update
 RUN apt-get install --yes    \
+    clang-11                 \
     git                      \
-    postgresql-server-dev-13 \
+    postgresql-server-dev-14 \
     python3                  \
     python3-dev              \
     python3-setuptools       \
@@ -16,7 +17,7 @@ RUN apt-get install --yes    \
 RUN git clone https://github.com/pgsql-io/multicorn2 /tmp/multicorn2 && \
     cd /tmp/multicorn2 && \
     PYTHON_OVERRIDE=python3 make install && \
-    cp /tmp/multicorn2/multicorn.control /usr/share/postgresql/13/extension/multicorn.control && \
+    cp /tmp/multicorn2/multicorn.control /usr/share/postgresql/14/extension/multicorn.control && \
     rm -rf /tmp/multicorn2
 RUN pip3 install $ES_PIP_VERSION
 

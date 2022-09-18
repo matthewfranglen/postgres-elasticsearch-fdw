@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  postgres:
+    build:
+      dockerfile: ./tests/docker/pg-14/Dockerfile
+    image: pg-es-fdw:pg-14-es-${ES_VERSION}
+    container_name: pg-14
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust

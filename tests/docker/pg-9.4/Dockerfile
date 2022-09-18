@@ -4,13 +4,13 @@ ARG ES_PIP_VERSION
 
 RUN apt-get update
 RUN apt-key update
-RUN apt-get install --yes --force-yes \
-    build-essential                   \
-    libffi-dev                        \
-    libssl-dev                        \
-    postgresql-9.4-python-multicorn   \
-    python                            \
-    python-dev                        \
+RUN apt-get install --yes --fix-missing \
+    build-essential                     \
+    libffi-dev                          \
+    libssl-dev                          \
+    postgresql-9.4-python-multicorn     \
+    python                              \
+    python-dev                          \
     python-pip
 RUN pip install $ES_PIP_VERSION
 
