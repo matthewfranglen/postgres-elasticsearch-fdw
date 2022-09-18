@@ -1,5 +1,24 @@
 #!/bin/bash
 
 curl https://pypi.org/pypi/elasticsearch/json | \
-jq -r '.releases | keys[] as $k |
-            "{ version = \"\($k)\", python = \"\(if (.[$k] | .[0].requires_python) != null then (.[$k] | .[0].requires_python) else "*" end)\", optional = true },"'
+    jq -r '[ .releases | keys[] as $k |
+            { version: "\($k)", python: "\(if (.[$k] | .[0].requires_python) != null then (.[$k] | .[0].requires_python) else "*" end)", optional: true } ]' | \
+    python -c '
+import json
+import sys
+from collections import defaultdict
+
+data = json.load(sys.stdin)
+versions = defaultdict(set)
+
+for row in data:
+    major = int(row["version"].split(".")[0])
+    versions[major].add(row["python"])
+
+for version, constraints in versions.items():
+    if len(constraints) > 1:
+        constraints.remove("*")
+    assert len(constraints) == 1, f"cannot express these constraints: {constraints}"
+    constraint = list(constraints)[0]
+    print(f"{{ version = \">={version},<{version+1}\", python = \"{constraint}\", optional = true }}")
+'
