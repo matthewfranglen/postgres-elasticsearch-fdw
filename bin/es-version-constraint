@@ -1,0 +1,5 @@
+#!/bin/bash
+
+curl https://pypi.org/pypi/elasticsearch/json | \
+jq -r '.releases | keys[] as $k |
+            "{ version = \"\($k)\", python = \"\(if (.[$k] | .[0].requires_python) != null then (.[$k] | .[0].requires_python) else "*" end)\", optional = true },"'
