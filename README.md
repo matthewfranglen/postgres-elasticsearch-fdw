@@ -141,6 +141,7 @@ fields. The other fields have special meaning:
  * The `sort_column` (`sort` above) accepts an Elastic Search column to sort by
  * The `refresh` option controls if inserts and updates should wait for an index refresh ([Elastic Search documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-refresh.html)). The acceptable values are `"false"` (default), `"wait_for"` and `"true"`
  * The `complete_returning` options controls if Elastic Search is queries for the document after an insert to support `RETURNING` fields other than the document id. The acceptable values are `"false"` (default) and `"true"`
+ * The `scheme` field specifies the scheme of the Elastic Search index
  * The `timeout` field specifies the connection timeout in seconds
  * The `username` field specifies the basic auth username used
  * The `password` field specifies the basic auth password used
