@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pg-es-fdw"
-version = "0.11.2"
+version = "0.11.3"
 description = "Connect PostgreSQL and Elastic Search with this Foreign Data Wrapper"
 authors = ["Matthew Franglen <matthew@franglen.org>"]
 license = "MIT"
