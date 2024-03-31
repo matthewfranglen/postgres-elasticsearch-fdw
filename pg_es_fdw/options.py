@@ -32,6 +32,7 @@ class ElasticsearchFDWOptions(object):
         )
 
         self.host = options.pop("host", "localhost")
+        self.scheme = options.pop("scheme", None)
         self.port = _int_option(options, key="port", default=9200)
         self.timeout = _int_option(options, key="timeout", default=10)
         self.auth = _get_authentication(options)
@@ -42,11 +43,14 @@ class ElasticsearchFDWOptions(object):
         Creates an elasticsearch client from the options
         """
         # () -> Elasticsearch
+        settings = {"host": self.host, "port": self.port}
+        if self.scheme:
+            settings["scheme"] = self.scheme
         return Elasticsearch(
-            [{"host": self.host, "port": self.port}],
-            http_auth=self.auth,
+            [settings],
+            basic_auth=self.auth,
             timeout=self.timeout,
-            **self.options
+            **self.options,
         )
 
     def get_query(self, quals):
