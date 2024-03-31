@@ -43,12 +43,14 @@ class ElasticsearchFDWOptions(object):
         Creates an elasticsearch client from the options
         """
         # () -> Elasticsearch
+        settings = {"host": self.host, "port": self.port}
+        if self.scheme:
+            settings["scheme"] = self.scheme
         return Elasticsearch(
-            [{"host": self.host, "port": self.port, "scheme": self.scheme} if self.scheme else
-             {"host": self.host, "port": self.port}],
+            [settings],
             basic_auth=self.auth,
             timeout=self.timeout,
-            **self.options
+            **self.options,
         )
 
     def get_query(self, quals):
