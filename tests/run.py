@@ -17,10 +17,11 @@ def main():
     parser = argparse.ArgumentParser(description="Perform end to end tests.")
     parser.add_argument("--pg", nargs="+", help="PostgreSQL version")
     parser.add_argument("--es", nargs="+", help="Elasticsearch version")
+    parser.add_argument("--es_version_option", help="es_version in foreign table option", action="store_true")
     args = parser.parse_args()
 
     result = all(
-        run_tests(pg_version, es_version)
+        run_tests(pg_version, es_version, args.es_version_option)
         for pg_version in args.pg
         for es_version in args.es
     )
@@ -29,18 +30,21 @@ def main():
     sys.exit(0 if result else 1)
 
 
-def run_tests(pg_version, es_version):
+def run_tests(pg_version, es_version, es_version_option=False):
     """ Runs the tests """
 
     show_status(
-        "Testing PostgreSQL {pg_version} with Elasticsearch {es_version}".format(
-            pg_version=pg_version, es_version=es_version
+        "Testing PostgreSQL {pg_version} with Elasticsearch {es_version}. es_version option: {es_version_option}.".format(
+            pg_version=pg_version, es_version=es_version, es_version_option=es_version_option
         ),
         newline=True,
     )
 
     set_up(pg_version, es_version)
-    load_fixtures()
+    if es_version_option:
+        load_fixtures(es_version.split("-")[0], es_version_option)
+    else:
+        load_fixtures(es_version.split("-")[0], es_version_option)
 
     time.sleep(10)
 

@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  postgres:
+    build:
+      args:
+        ES_PIP_VERSION: "elasticsearch>=8"
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.8.2
+    environment:
+      - cluster.name=docker-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=changeme
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    container_name: es-6

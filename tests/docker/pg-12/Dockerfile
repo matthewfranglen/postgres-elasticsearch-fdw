@@ -1,4 +1,4 @@
-FROM postgres:12
+FROM postgres:12-bullseye
 
 ARG ES_PIP_VERSION
 

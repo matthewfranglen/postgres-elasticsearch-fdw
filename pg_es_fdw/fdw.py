@@ -93,12 +93,20 @@ class ElasticsearchFDW(ForeignDataWrapper):
         document_id, document = self.columns.serialize(new_values)
 
         try:
-            response = self.client.index(
-                id=document_id,
-                body=document,
-                refresh=self.options.refresh,
-                **self.options.arguments
-            )
+            if self.options.client_version >= 8:
+                response = self.client.create(
+                    id=document_id,
+                    document=document,
+                    refresh=self.options.refresh,
+                    **self.options.arguments
+                )
+            else:
+                response = self.client.create(
+                    id=document_id,
+                    body=document,
+                    refresh=self.options.refresh,
+                    **self.options.arguments
+                )
             if self.options.complete_returning:
                 return self._read_by_id(response["_id"])
             return {self.options.rowid_column: response["_id"]}
@@ -119,13 +127,21 @@ class ElasticsearchFDW(ForeignDataWrapper):
         _, document = self.columns.serialize(new_values)
 
         try:
-            response = self.client.index(
-                id=document_id,
-                body=document,
-                refresh=self.options.refresh,
-                **self.options.arguments
-            )
-            if self.complete_returning:
+            if self.options.es_version >= 8:
+                response = self.client.update(
+                    id=document_id,
+                    body={"doc": document},
+                    refresh=self.options.refresh,
+                    **self.options.arguments
+                )
+            else:
+                response = self.client.update(
+                    id=document_id,
+                    doc=document,
+                    refresh=self.options.refresh,
+                    **self.options.arguments
+                )
+            if self.options.complete_returning:
                 return self._read_by_id(response["_id"])
             return {self.options.rowid_column: response["_id"]}
         except Exception as exception:

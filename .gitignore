@@ -1,3 +1,5 @@
 dist/
+build/
 pg_es_fdw.egg-info/
+.venv/
 .make

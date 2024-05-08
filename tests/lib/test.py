@@ -54,7 +54,10 @@ def perform_tests(pg_version, es_version):
         success = False
 
     show_status("Testing json query...")
-    data, error = run_sql_test("json-query.sql")
+    if es_version.startswith("8"):
+        data, error = run_sql_test("json-query-8.sql")
+    else:
+        data, error = run_sql_test("json-query.sql")
     if not show_result(
         pg_version, es_version, "json-query", (data == "Portal Chess", error)
     ):

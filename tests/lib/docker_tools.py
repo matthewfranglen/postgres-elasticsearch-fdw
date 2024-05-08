@@ -23,7 +23,8 @@ def docker_compose(pg_version, es_version):
     )
     new_env = os.environ.copy()
     new_env["ES_VERSION"] = es_version
-    return sh.docker_compose.bake(
+    return sh.docker.bake(
+        "compose",
         "-f",
         base_compose_file,
         "-f",

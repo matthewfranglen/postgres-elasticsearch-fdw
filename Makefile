@@ -34,10 +34,13 @@ format : $(DEP_PROJECT_PYTHON)
 	poetry run black pg_es_fdw tests
 
 ## Run Tests
-test : PG_VERSIONS ?= 9.5 9.6 10 11 12 13 14 15
-test : ES_VERSIONS ?= 5 6 6-auth 7
+test : PG_VERSIONS ?= 12 13 14 15
+test : ES_VERSIONS ?= 5 6 6-auth 7 7-auth
+test : ES_PIP_VERSIONS ?= 6-pip 8-pip 7-pip
 test : $(DEP_PROJECT_PYTHON)
 	poetry run tests/run.py --pg $(PG_VERSIONS) --es $(ES_VERSIONS)
+	poetry run tests/run.py --pg $(PG_VERSIONS) --es $(ES_VERSIONS) 8 --es_version_option
+	poetry run tests/run.py --pg $(PG_VERSIONS) --es $(ES_PIP_VERSIONS) --es_version_option
 
 ## Launch specific postgres and elasticsearch containers
 start : PG_VERSION ?= 13

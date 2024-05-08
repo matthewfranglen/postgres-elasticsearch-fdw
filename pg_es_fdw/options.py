@@ -4,9 +4,14 @@ Provides a facade over everything that the options detail.
 """
 # pylint: disable=too-many-instance-attributes
 import json
+from sys import stderr
 
 from elasticsearch import VERSION as ELASTICSEARCH_VERSION
 from elasticsearch import Elasticsearch
+from elasticsearch8 import Elasticsearch as Elasticsearch8
+from elasticsearch7 import Elasticsearch as Elasticsearch7
+from elasticsearch6 import Elasticsearch as Elasticsearch6
+
 
 
 class ElasticsearchFDWOptions(object):
@@ -17,6 +22,9 @@ class ElasticsearchFDWOptions(object):
     def __init__(self, options):
         # (Dict[str, str]) -> None
         self.path, self.arguments = _get_path_and_arguments(options)
+        self.es_version = _int_option(options, "es_version", default=0)
+        self.verify_certs = _boolean_option(options, "verify_certs", default=True)
+        self.client_version = ELASTICSEARCH_VERSION[0]
 
         self.query_column = options.pop("query_column", None)
         self.is_json_query = _boolean_option(options, key="query_dsl", default=False)
@@ -46,12 +54,46 @@ class ElasticsearchFDWOptions(object):
         settings = {"host": self.host, "port": self.port}
         if self.scheme:
             settings["scheme"] = self.scheme
-        return Elasticsearch(
-            [settings],
-            basic_auth=self.auth,
-            timeout=self.timeout,
-            **self.options,
-        )
+        if self.es_version >= 8:
+            self.client_version = 8
+            return Elasticsearch8(
+                [settings],
+                basic_auth=self.auth,
+                timeout=self.timeout,
+                verify_certs=self.verify_certs,
+                **self.options,
+            )
+        elif self.es_version == 7:
+            self.client_version = 7
+            return Elasticsearch7(
+                [settings],
+                http_auth=self.auth,
+                timeout=self.timeout,
+                **self.options,
+            )
+        elif self.es_version == 6:
+            self.client_version = 6
+            return Elasticsearch6(
+                [settings],
+                http_auth=self.auth,
+                timeout=self.timeout,
+                **self.options,
+            )
+        else:
+            if self.client_version >= 8:
+                return Elasticsearch(
+                    [settings],
+                    basic_auth=self.auth,
+                    timeout=self.timeout,
+                    **self.options,
+                )
+            else:
+                return Elasticsearch(
+                    [settings],
+                    http_auth=self.auth,
+                    timeout=self.timeout,
+                    **self.options,
+                )
 
     def get_query(self, quals):
         """
@@ -69,7 +111,10 @@ class ElasticsearchFDWOptions(object):
         arguments = self.arguments.copy()
         if query:
             if self.is_json_query:
-                arguments["body"] = json.loads(query)
+                if self.client_version >= 8:
+                    arguments["query"] = json.loads(query)
+                else:
+                    arguments["body"] = json.loads(query)
             else:
                 arguments["q"] = query
         return arguments
@@ -80,7 +125,10 @@ class ElasticsearchFDWOptions(object):
         """
         # (str) -> Dict[str, Any]
         arguments = self.arguments.copy()
-        arguments["body"] = {"query": {"ids": {"values": [row_id]}}}
+        if self.client_version >= 8:
+            arguments["query"] = {"ids": {"values": [row_id]}}
+        else:
+            arguments["body"] = {"query": {"ids": {"values": [row_id]}}}
         return arguments
 
     def get_sort(self, quals):
@@ -111,7 +159,8 @@ def _get_path_and_arguments(options):
     # (Dict[str, str]) -> Tuple[str, Dict[str, str]]
     index = options.pop("index", "")
     doc_type = options.pop("type", "")
-    if ELASTICSEARCH_VERSION[0] >= 7:
+    es_version = int(options.get('es_version', '0'))
+    if es_version >= 7 or es_version == 0 and ELASTICSEARCH_VERSION[0] >= 7:
         path = "/{index}".format(index=index)
         arguments = {"index": index}
     else:

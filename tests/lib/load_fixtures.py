@@ -5,7 +5,7 @@ from lib.pg_tools import load_sql_file, pg_is_available
 from lib.tools import show_status, wait_for
 
 
-def load_fixtures():
+def load_fixtures(es_version, es_version_option):
     """ Load fixtures into PostgreSQL and Elastic Search """
 
     show_status("Loading fixtures")
@@ -14,7 +14,10 @@ def load_fixtures():
     wait_for(pg_is_available)
 
     show_status("Loading PostgreSQL schema...")
-    load_sql_file("schema.sql")
+    if es_version_option and es_version in ["7", "8"]:
+        load_sql_file("schema-{es_version}.sql".format(es_version=es_version))
+    else:
+        load_sql_file("schema.sql")
 
     show_status("Loading PostgreSQL data...")
     load_sql_file("data.sql")
@@ -23,5 +26,9 @@ def load_fixtures():
     wait_for(es_is_available)
 
     show_status("Loading Elastic Search data...")
-    load_json_file("data.json")
-    load_json_file("nested-data.json")
+    if es_version and es_version in ["7", "8"]:
+        load_json_file("data-{}.json".format(es_version))
+        load_json_file("nested-data-{}.json".format(es_version))
+    else:
+        load_json_file("data.json")
+        load_json_file("nested-data.json")

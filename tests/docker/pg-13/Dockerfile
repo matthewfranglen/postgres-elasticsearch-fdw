@@ -18,7 +18,7 @@ RUN git clone https://github.com/pgsql-io/multicorn2 /tmp/multicorn2 && \
     PYTHON_OVERRIDE=python3 make install && \
     cp /tmp/multicorn2/multicorn.control /usr/share/postgresql/13/extension/multicorn.control && \
     rm -rf /tmp/multicorn2
-RUN pip3 install $ES_PIP_VERSION
+RUN pip3 install --break-system-packages $ES_PIP_VERSION
 
 COPY . /pg-es-fdw
 WORKDIR /pg-es-fdw
