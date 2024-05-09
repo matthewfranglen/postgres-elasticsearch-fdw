@@ -13,7 +13,7 @@ keywords = ["postgresql", "postgres", "elasticsearch", "es", "fdw"]
 download ="https://github.com/matthewfranglen/postgres-elasticsearch-fdw/archive/0.11.2.zip"
 
 [tool.poetry.dependencies]
-python = ">=3.12"
+python = ">=3"
 elasticsearch = { version = ">=7,<8", python = ">=3.6, <4" }
 elasticsearch8 = { version = ">=8", python = ">=3.6, <4" }
 elasticsearch7 = { version = ">=7,<8", python = ">=3.6, <4" }
