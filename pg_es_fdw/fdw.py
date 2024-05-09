@@ -94,14 +94,14 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
         try:
             if self.options.client_version >= 8:
-                response = self.client.create(
+                response = self.client.index(
                     id=document_id,
                     document=document,
                     refresh=self.options.refresh,
                     **self.options.arguments
                 )
             else:
-                response = self.client.create(
+                response = self.client.index(
                     id=document_id,
                     body=document,
                     refresh=self.options.refresh,
@@ -130,14 +130,14 @@ class ElasticsearchFDW(ForeignDataWrapper):
             if self.options.es_version >= 8:
                 response = self.client.update(
                     id=document_id,
-                    body={"doc": document},
+                    doc=document,
                     refresh=self.options.refresh,
                     **self.options.arguments
                 )
             else:
                 response = self.client.update(
                     id=document_id,
-                    doc=document,
+                    body={"doc": document},
                     refresh=self.options.refresh,
                     **self.options.arguments
                 )
