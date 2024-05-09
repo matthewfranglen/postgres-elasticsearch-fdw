@@ -65,7 +65,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
 
                 for row in response["hits"]["hits"]:
                     yield self.columns.deserialize(
-                        row=row, query=query, sort=sort, columns=columns
+                        row=row, query=query, sort=sort, columns=None
                     )
 
                 if len(response["hits"]["hits"]) < self.options.scroll_size:
