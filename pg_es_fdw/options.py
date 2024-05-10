@@ -97,6 +97,12 @@ class ElasticsearchFDWOptions(object):
         Get the elasticsearch client options that identify the sort, page size and scroll duration
         """
         # (str) -> Dict[str, Any]
+        # Unknown key for a VALUE_NULL in [sort].
+        if sort is None:
+            return {
+                "size": self.scroll_size,
+                "scroll": self.scroll_duration,
+            }
         return {
             "sort": sort,
             "size": self.scroll_size,
