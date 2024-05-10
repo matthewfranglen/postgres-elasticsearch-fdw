@@ -35,7 +35,8 @@ OPTIONS
         score_column 'score',
         timeout '20',
         username 'elastic',
-        password 'changeme'
+        password 'changeme',
+        scheme 'http'
     )
 ;
 
@@ -62,6 +63,7 @@ OPTIONS
         timeout '20',
         username 'elastic',
         password 'changeme',
+        scheme 'http',
         refresh 'wait_for'
     )
 ;
@@ -89,6 +91,7 @@ OPTIONS
         timeout '20',
         username 'elastic',
         password 'changeme',
+        scheme 'http',
         refresh 'wait_for',
         complete_returning 'true'
     )
@@ -116,7 +119,8 @@ OPTIONS
         score_column 'score',
         timeout '20',
         username 'elastic',
-        password 'changeme'
+        password 'changeme',
+        scheme 'http'
     )
 ;
 
@@ -143,7 +147,8 @@ OPTIONS
         score_column 'score',
         timeout '20',
         username 'elastic',
-        password 'changeme'
+        password 'changeme',
+        scheme 'http'
     )
 ;
 
