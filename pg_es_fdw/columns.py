@@ -1,12 +1,15 @@
 """
 Handlers for different column types
 """
+
 # pylint: disable=useless-object-inheritance, too-many-arguments
-import logging
+
 import json
+import logging
 from abc import ABCMeta, abstractmethod
 
-from multicorn.utils import log_to_postgres as log2pg  # pylint: disable=import-error
+from multicorn.utils import \
+    log_to_postgres as log2pg  # pylint: disable=import-error
 
 
 class Column(object):
@@ -146,8 +149,10 @@ class Columns(object):
 
         rowid_column = self.id_column.name
         if rowid_column not in row:
-            message = 'INSERT/UPDATE requires "{rowid}" column. Missing in: {values}'.format(
-                rowid=rowid_column, values=row
+            message = (
+                'INSERT/UPDATE requires "{rowid}" column. Missing in: {values}'.format(
+                    rowid=rowid_column, values=row
+                )
             )
             log2pg(message, logging.ERROR)
             # The insert or update cannot proceed so the transaction should abort.

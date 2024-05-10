@@ -14,16 +14,17 @@ SYNOPSIS
 | 5 | `sudo pip install "elasticsearch>=5,<6"` |
 | 6 | `sudo pip install "elasticsearch>=6,<7"` |
 | 7 | `sudo pip install "elasticsearch>=7,<8"` |
+| 8 | `sudo pip install "elasticsearch>=8,<9"` |
 
-| PostgreSQL | Dependency Installation Command                        |
-|------------|--------------------------------------------------------|
-| 9.4        | `sudo apt-get install postgresql-9.4-python-multicorn` |
-| 9.5        | `sudo apt-get install postgresql-9.5-python-multicorn` |
-| 9.6        | `sudo apt-get install postgresql-9.6-python-multicorn` |
-| 10         | `sudo apt-get install postgresql-10-python-multicorn`  |
-| 11         | `sudo apt-get install postgresql-11-python-multicorn`  |
-| 12         | `sudo apt-get install postgresql-12-python3-multicorn` |
-| 13         | `sudo apt-get install postgresql-13-python3-multicorn` |
+| PostgreSQL | Dependency Installation Command                                     |
+|------------|---------------------------------------------------------------------|
+| 9.4        | `sudo apt-get install postgresql-9.4-python-multicorn`              |
+| 9.5        | `sudo apt-get install postgresql-9.5-python-multicorn`              |
+| 9.6        | `sudo apt-get install postgresql-9.6-python-multicorn`              |
+| 10         | `sudo apt-get install postgresql-10-python-multicorn`               |
+| 11         | `sudo apt-get install postgresql-11-python-multicorn`               |
+| 12         | `sudo apt-get install postgresql-12-python3-multicorn`              |
+| 13         | `sudo apt-get install postgresql-13-python3-multicorn`              |
 
 Please note that the Debian package for Multicorn on PostgreSQL 12+ requires Python 3.
 
@@ -311,258 +312,27 @@ There are end to end tests that use docker to create a PostgreSQL and Elastic
 Search database. These are then populated with data and tests are run against
 them.
 
-These require docker and docker-compose. These also require python packages
-which you can install with:
+These require docker and docker-compose (see the [installation
+instructions](https://docs.docker.com/engine/install/ubuntu/)).
+
+These currently target Python 3.11.9 which you can install with
+[pyenv](https://github.com/pyenv/pyenv/#installation).
+
+These also require [poetry](https://python-poetry.org/docs/#installation) to
+manage the python dependencies.
+
+Once you have installed python 3.11.9, docker, docker-compose and poetry you
+can install the requirements with:
 
 ```bash
-pip install -r tests/requirements.txt
+make requirements
 ```
 
 The makefile will test all versions if you run `make test`:
 
 ```bash
 ➜ make test
-poetry run tests/run.py --pg 9.4 9.5 9.6 10 11 12 13 --es 5 6 6-auth 7
-Testing PostgreSQL 9.4 with Elasticsearch 5
-PostgreSQL 9.4 with Elasticsearch 5: Test read - PASS
-PostgreSQL 9.4 with Elasticsearch 5: Test nested-read - PASS
-PostgreSQL 9.4 with Elasticsearch 5: Test sorted-read - PASS
-PostgreSQL 9.4 with Elasticsearch 5: Test query - PASS
-PostgreSQL 9.4 with Elasticsearch 5: Test json-query - PASS
-PostgreSQL 9.4 with Elasticsearch 5: Test insert returning id - PASS
-PostgreSQL 9.4 with Elasticsearch 5: Test insert returning row - PASS
-PostgreSQL 9.4 with Elasticsearch 5: Test insert waiting for refresh - PASS
-PostgreSQL 9.4 with Elasticsearch 5: Test delete returning row - PASS
-Testing PostgreSQL 9.4 with Elasticsearch 6
-PostgreSQL 9.4 with Elasticsearch 6: Test read - PASS
-PostgreSQL 9.4 with Elasticsearch 6: Test nested-read - PASS
-PostgreSQL 9.4 with Elasticsearch 6: Test sorted-read - PASS
-PostgreSQL 9.4 with Elasticsearch 6: Test query - PASS
-PostgreSQL 9.4 with Elasticsearch 6: Test json-query - PASS
-PostgreSQL 9.4 with Elasticsearch 6: Test insert returning id - PASS
-PostgreSQL 9.4 with Elasticsearch 6: Test insert returning row - PASS
-PostgreSQL 9.4 with Elasticsearch 6: Test insert waiting for refresh - PASS
-PostgreSQL 9.4 with Elasticsearch 6: Test delete returning row - PASS
-Testing PostgreSQL 9.4 with Elasticsearch 6-auth
-PostgreSQL 9.4 with Elasticsearch 6-auth: Test read - PASS
-PostgreSQL 9.4 with Elasticsearch 6-auth: Test nested-read - PASS
-PostgreSQL 9.4 with Elasticsearch 6-auth: Test sorted-read - PASS
-PostgreSQL 9.4 with Elasticsearch 6-auth: Test query - PASS
-PostgreSQL 9.4 with Elasticsearch 6-auth: Test json-query - PASS
-PostgreSQL 9.4 with Elasticsearch 6-auth: Test insert returning id - PASS
-PostgreSQL 9.4 with Elasticsearch 6-auth: Test insert returning row - PASS
-PostgreSQL 9.4 with Elasticsearch 6-auth: Test insert waiting for refresh - PASS
-PostgreSQL 9.4 with Elasticsearch 6-auth: Test delete returning row - PASS
-Testing PostgreSQL 9.4 with Elasticsearch 7
-PostgreSQL 9.4 with Elasticsearch 7: Test read - PASS
-PostgreSQL 9.4 with Elasticsearch 7: Test nested-read - PASS
-PostgreSQL 9.4 with Elasticsearch 7: Test sorted-read - PASS
-PostgreSQL 9.4 with Elasticsearch 7: Test query - PASS
-PostgreSQL 9.4 with Elasticsearch 7: Test json-query - PASS
-PostgreSQL 9.4 with Elasticsearch 7: Test insert returning id - PASS
-PostgreSQL 9.4 with Elasticsearch 7: Test insert returning row - PASS
-PostgreSQL 9.4 with Elasticsearch 7: Test insert waiting for refresh - PASS
-PostgreSQL 9.4 with Elasticsearch 7: Test delete returning row - PASS
-Testing PostgreSQL 9.5 with Elasticsearch 5
-PostgreSQL 9.5 with Elasticsearch 5: Test read - PASS
-PostgreSQL 9.5 with Elasticsearch 5: Test nested-read - PASS
-PostgreSQL 9.5 with Elasticsearch 5: Test sorted-read - PASS
-PostgreSQL 9.5 with Elasticsearch 5: Test query - PASS
-PostgreSQL 9.5 with Elasticsearch 5: Test json-query - PASS
-PostgreSQL 9.5 with Elasticsearch 5: Test insert returning id - PASS
-PostgreSQL 9.5 with Elasticsearch 5: Test insert returning row - PASS
-PostgreSQL 9.5 with Elasticsearch 5: Test insert waiting for refresh - PASS
-PostgreSQL 9.5 with Elasticsearch 5: Test delete returning row - PASS
-Testing PostgreSQL 9.5 with Elasticsearch 6
-PostgreSQL 9.5 with Elasticsearch 6: Test read - PASS
-PostgreSQL 9.5 with Elasticsearch 6: Test nested-read - PASS
-PostgreSQL 9.5 with Elasticsearch 6: Test sorted-read - PASS
-PostgreSQL 9.5 with Elasticsearch 6: Test query - PASS
-PostgreSQL 9.5 with Elasticsearch 6: Test json-query - PASS
-PostgreSQL 9.5 with Elasticsearch 6: Test insert returning id - PASS
-PostgreSQL 9.5 with Elasticsearch 6: Test insert returning row - PASS
-PostgreSQL 9.5 with Elasticsearch 6: Test insert waiting for refresh - PASS
-PostgreSQL 9.5 with Elasticsearch 6: Test delete returning row - PASS
-Testing PostgreSQL 9.5 with Elasticsearch 6-auth
-PostgreSQL 9.5 with Elasticsearch 6-auth: Test read - PASS
-PostgreSQL 9.5 with Elasticsearch 6-auth: Test nested-read - PASS
-PostgreSQL 9.5 with Elasticsearch 6-auth: Test sorted-read - PASS
-PostgreSQL 9.5 with Elasticsearch 6-auth: Test query - PASS
-PostgreSQL 9.5 with Elasticsearch 6-auth: Test json-query - PASS
-PostgreSQL 9.5 with Elasticsearch 6-auth: Test insert returning id - PASS
-PostgreSQL 9.5 with Elasticsearch 6-auth: Test insert returning row - PASS
-PostgreSQL 9.5 with Elasticsearch 6-auth: Test insert waiting for refresh - PASS
-PostgreSQL 9.5 with Elasticsearch 6-auth: Test delete returning row - PASS
-Testing PostgreSQL 9.5 with Elasticsearch 7
-PostgreSQL 9.5 with Elasticsearch 7: Test read - PASS
-PostgreSQL 9.5 with Elasticsearch 7: Test nested-read - PASS
-PostgreSQL 9.5 with Elasticsearch 7: Test sorted-read - PASS
-PostgreSQL 9.5 with Elasticsearch 7: Test query - PASS
-PostgreSQL 9.5 with Elasticsearch 7: Test json-query - PASS
-PostgreSQL 9.5 with Elasticsearch 7: Test insert returning id - PASS
-PostgreSQL 9.5 with Elasticsearch 7: Test insert returning row - PASS
-PostgreSQL 9.5 with Elasticsearch 7: Test insert waiting for refresh - PASS
-PostgreSQL 9.5 with Elasticsearch 7: Test delete returning row - PASS
-Testing PostgreSQL 9.6 with Elasticsearch 5
-PostgreSQL 9.6 with Elasticsearch 5: Test read - PASS
-PostgreSQL 9.6 with Elasticsearch 5: Test nested-read - PASS
-PostgreSQL 9.6 with Elasticsearch 5: Test sorted-read - PASS
-PostgreSQL 9.6 with Elasticsearch 5: Test query - PASS
-PostgreSQL 9.6 with Elasticsearch 5: Test json-query - PASS
-PostgreSQL 9.6 with Elasticsearch 5: Test insert returning id - PASS
-PostgreSQL 9.6 with Elasticsearch 5: Test insert returning row - PASS
-PostgreSQL 9.6 with Elasticsearch 5: Test insert waiting for refresh - PASS
-PostgreSQL 9.6 with Elasticsearch 5: Test delete returning row - PASS
-Testing PostgreSQL 9.6 with Elasticsearch 6
-PostgreSQL 9.6 with Elasticsearch 6: Test read - PASS
-PostgreSQL 9.6 with Elasticsearch 6: Test nested-read - PASS
-PostgreSQL 9.6 with Elasticsearch 6: Test sorted-read - PASS
-PostgreSQL 9.6 with Elasticsearch 6: Test query - PASS
-PostgreSQL 9.6 with Elasticsearch 6: Test json-query - PASS
-PostgreSQL 9.6 with Elasticsearch 6: Test insert returning id - PASS
-PostgreSQL 9.6 with Elasticsearch 6: Test insert returning row - PASS
-PostgreSQL 9.6 with Elasticsearch 6: Test insert waiting for refresh - PASS
-PostgreSQL 9.6 with Elasticsearch 6: Test delete returning row - PASS
-Testing PostgreSQL 9.6 with Elasticsearch 6-auth
-PostgreSQL 9.6 with Elasticsearch 6-auth: Test read - PASS
-PostgreSQL 9.6 with Elasticsearch 6-auth: Test nested-read - PASS
-PostgreSQL 9.6 with Elasticsearch 6-auth: Test sorted-read - PASS
-PostgreSQL 9.6 with Elasticsearch 6-auth: Test query - PASS
-PostgreSQL 9.6 with Elasticsearch 6-auth: Test json-query - PASS
-PostgreSQL 9.6 with Elasticsearch 6-auth: Test insert returning id - PASS
-PostgreSQL 9.6 with Elasticsearch 6-auth: Test insert returning row - PASS
-PostgreSQL 9.6 with Elasticsearch 6-auth: Test insert waiting for refresh - PASS
-PostgreSQL 9.6 with Elasticsearch 6-auth: Test delete returning row - PASS
-Testing PostgreSQL 9.6 with Elasticsearch 7
-PostgreSQL 9.6 with Elasticsearch 7: Test read - PASS
-PostgreSQL 9.6 with Elasticsearch 7: Test nested-read - PASS
-PostgreSQL 9.6 with Elasticsearch 7: Test sorted-read - PASS
-PostgreSQL 9.6 with Elasticsearch 7: Test query - PASS
-PostgreSQL 9.6 with Elasticsearch 7: Test json-query - PASS
-PostgreSQL 9.6 with Elasticsearch 7: Test insert returning id - PASS
-PostgreSQL 9.6 with Elasticsearch 7: Test insert returning row - PASS
-PostgreSQL 9.6 with Elasticsearch 7: Test insert waiting for refresh - PASS
-PostgreSQL 9.6 with Elasticsearch 7: Test delete returning row - PASS
-Testing PostgreSQL 10 with Elasticsearch 5
-PostgreSQL 10 with Elasticsearch 5: Test read - PASS
-PostgreSQL 10 with Elasticsearch 5: Test nested-read - PASS
-PostgreSQL 10 with Elasticsearch 5: Test sorted-read - PASS
-PostgreSQL 10 with Elasticsearch 5: Test query - PASS
-PostgreSQL 10 with Elasticsearch 5: Test json-query - PASS
-PostgreSQL 10 with Elasticsearch 5: Test insert returning id - PASS
-PostgreSQL 10 with Elasticsearch 5: Test insert returning row - PASS
-PostgreSQL 10 with Elasticsearch 5: Test insert waiting for refresh - PASS
-PostgreSQL 10 with Elasticsearch 5: Test delete returning row - PASS
-Testing PostgreSQL 10 with Elasticsearch 6
-PostgreSQL 10 with Elasticsearch 6: Test read - PASS
-PostgreSQL 10 with Elasticsearch 6: Test nested-read - PASS
-PostgreSQL 10 with Elasticsearch 6: Test sorted-read - PASS
-PostgreSQL 10 with Elasticsearch 6: Test query - PASS
-PostgreSQL 10 with Elasticsearch 6: Test json-query - PASS
-PostgreSQL 10 with Elasticsearch 6: Test insert returning id - PASS
-PostgreSQL 10 with Elasticsearch 6: Test insert returning row - PASS
-PostgreSQL 10 with Elasticsearch 6: Test insert waiting for refresh - PASS
-PostgreSQL 10 with Elasticsearch 6: Test delete returning row - PASS
-Testing PostgreSQL 10 with Elasticsearch 6-auth
-PostgreSQL 10 with Elasticsearch 6-auth: Test read - PASS
-PostgreSQL 10 with Elasticsearch 6-auth: Test nested-read - PASS
-PostgreSQL 10 with Elasticsearch 6-auth: Test sorted-read - PASS
-PostgreSQL 10 with Elasticsearch 6-auth: Test query - PASS
-PostgreSQL 10 with Elasticsearch 6-auth: Test json-query - PASS
-PostgreSQL 10 with Elasticsearch 6-auth: Test insert returning id - PASS
-PostgreSQL 10 with Elasticsearch 6-auth: Test insert returning row - PASS
-PostgreSQL 10 with Elasticsearch 6-auth: Test insert waiting for refresh - PASS
-PostgreSQL 10 with Elasticsearch 6-auth: Test delete returning row - PASS
-Testing PostgreSQL 10 with Elasticsearch 7
-PostgreSQL 10 with Elasticsearch 7: Test read - PASS
-PostgreSQL 10 with Elasticsearch 7: Test nested-read - PASS
-PostgreSQL 10 with Elasticsearch 7: Test sorted-read - PASS
-PostgreSQL 10 with Elasticsearch 7: Test query - PASS
-PostgreSQL 10 with Elasticsearch 7: Test json-query - PASS
-PostgreSQL 10 with Elasticsearch 7: Test insert returning id - PASS
-PostgreSQL 10 with Elasticsearch 7: Test insert returning row - PASS
-PostgreSQL 10 with Elasticsearch 7: Test insert waiting for refresh - PASS
-PostgreSQL 10 with Elasticsearch 7: Test delete returning row - PASS
-Testing PostgreSQL 11 with Elasticsearch 5
-PostgreSQL 11 with Elasticsearch 5: Test read - PASS
-PostgreSQL 11 with Elasticsearch 5: Test nested-read - PASS
-PostgreSQL 11 with Elasticsearch 5: Test sorted-read - PASS
-PostgreSQL 11 with Elasticsearch 5: Test query - PASS
-PostgreSQL 11 with Elasticsearch 5: Test json-query - PASS
-PostgreSQL 11 with Elasticsearch 5: Test insert returning id - PASS
-PostgreSQL 11 with Elasticsearch 5: Test insert returning row - PASS
-PostgreSQL 11 with Elasticsearch 5: Test insert waiting for refresh - PASS
-PostgreSQL 11 with Elasticsearch 5: Test delete returning row - PASS
-Testing PostgreSQL 11 with Elasticsearch 6
-PostgreSQL 11 with Elasticsearch 6: Test read - PASS
-PostgreSQL 11 with Elasticsearch 6: Test nested-read - PASS
-PostgreSQL 11 with Elasticsearch 6: Test sorted-read - PASS
-PostgreSQL 11 with Elasticsearch 6: Test query - PASS
-PostgreSQL 11 with Elasticsearch 6: Test json-query - PASS
-PostgreSQL 11 with Elasticsearch 6: Test insert returning id - PASS
-PostgreSQL 11 with Elasticsearch 6: Test insert returning row - PASS
-PostgreSQL 11 with Elasticsearch 6: Test insert waiting for refresh - PASS
-PostgreSQL 11 with Elasticsearch 6: Test delete returning row - PASS
-Testing PostgreSQL 11 with Elasticsearch 6-auth
-PostgreSQL 11 with Elasticsearch 6-auth: Test read - PASS
-PostgreSQL 11 with Elasticsearch 6-auth: Test nested-read - PASS
-PostgreSQL 11 with Elasticsearch 6-auth: Test sorted-read - PASS
-PostgreSQL 11 with Elasticsearch 6-auth: Test query - PASS
-PostgreSQL 11 with Elasticsearch 6-auth: Test json-query - PASS
-PostgreSQL 11 with Elasticsearch 6-auth: Test insert returning id - PASS
-PostgreSQL 11 with Elasticsearch 6-auth: Test insert returning row - PASS
-PostgreSQL 11 with Elasticsearch 6-auth: Test insert waiting for refresh - PASS
-PostgreSQL 11 with Elasticsearch 6-auth: Test delete returning row - PASS
-Testing PostgreSQL 11 with Elasticsearch 7
-PostgreSQL 11 with Elasticsearch 7: Test read - PASS
-PostgreSQL 11 with Elasticsearch 7: Test nested-read - PASS
-PostgreSQL 11 with Elasticsearch 7: Test sorted-read - PASS
-PostgreSQL 11 with Elasticsearch 7: Test query - PASS
-PostgreSQL 11 with Elasticsearch 7: Test json-query - PASS
-PostgreSQL 11 with Elasticsearch 7: Test insert returning id - PASS
-PostgreSQL 11 with Elasticsearch 7: Test insert returning row - PASS
-PostgreSQL 11 with Elasticsearch 7: Test insert waiting for refresh - PASS
-PostgreSQL 11 with Elasticsearch 7: Test delete returning row - PASS
-Testing PostgreSQL 12 with Elasticsearch 5
-PostgreSQL 12 with Elasticsearch 5: Test read - PASS
-PostgreSQL 12 with Elasticsearch 5: Test nested-read - PASS
-PostgreSQL 12 with Elasticsearch 5: Test sorted-read - PASS
-PostgreSQL 12 with Elasticsearch 5: Test query - PASS
-PostgreSQL 12 with Elasticsearch 5: Test json-query - PASS
-PostgreSQL 12 with Elasticsearch 5: Test insert returning id - PASS
-PostgreSQL 12 with Elasticsearch 5: Test insert returning row - PASS
-PostgreSQL 12 with Elasticsearch 5: Test insert waiting for refresh - PASS
-PostgreSQL 12 with Elasticsearch 5: Test delete returning row - PASS
-Testing PostgreSQL 12 with Elasticsearch 6
-PostgreSQL 12 with Elasticsearch 6: Test read - PASS
-PostgreSQL 12 with Elasticsearch 6: Test nested-read - PASS
-PostgreSQL 12 with Elasticsearch 6: Test sorted-read - PASS
-PostgreSQL 12 with Elasticsearch 6: Test query - PASS
-PostgreSQL 12 with Elasticsearch 6: Test json-query - PASS
-PostgreSQL 12 with Elasticsearch 6: Test insert returning id - PASS
-PostgreSQL 12 with Elasticsearch 6: Test insert returning row - PASS
-PostgreSQL 12 with Elasticsearch 6: Test insert waiting for refresh - PASS
-PostgreSQL 12 with Elasticsearch 6: Test delete returning row - PASS
-Testing PostgreSQL 12 with Elasticsearch 6-auth
-PostgreSQL 12 with Elasticsearch 6-auth: Test read - PASS
-PostgreSQL 12 with Elasticsearch 6-auth: Test nested-read - PASS
-PostgreSQL 12 with Elasticsearch 6-auth: Test sorted-read - PASS
-PostgreSQL 12 with Elasticsearch 6-auth: Test query - PASS
-PostgreSQL 12 with Elasticsearch 6-auth: Test json-query - PASS
-PostgreSQL 12 with Elasticsearch 6-auth: Test insert returning id - PASS
-PostgreSQL 12 with Elasticsearch 6-auth: Test insert returning row - PASS
-PostgreSQL 12 with Elasticsearch 6-auth: Test insert waiting for refresh - PASS
-PostgreSQL 12 with Elasticsearch 6-auth: Test delete returning row - PASS
-Testing PostgreSQL 12 with Elasticsearch 7
-PostgreSQL 12 with Elasticsearch 7: Test read - PASS
-PostgreSQL 12 with Elasticsearch 7: Test nested-read - PASS
-PostgreSQL 12 with Elasticsearch 7: Test sorted-read - PASS
-PostgreSQL 12 with Elasticsearch 7: Test query - PASS
-PostgreSQL 12 with Elasticsearch 7: Test json-query - PASS
-PostgreSQL 12 with Elasticsearch 7: Test insert returning id - PASS
-PostgreSQL 12 with Elasticsearch 7: Test insert returning row - PASS
-PostgreSQL 12 with Elasticsearch 7: Test insert waiting for refresh - PASS
-PostgreSQL 12 with Elasticsearch 7: Test delete returning row - PASS
+poetry run tests/run.py --pg 13 14 15 --es 5 6 7 8
 Testing PostgreSQL 13 with Elasticsearch 5
 PostgreSQL 13 with Elasticsearch 5: Test read - PASS
 PostgreSQL 13 with Elasticsearch 5: Test nested-read - PASS
@@ -574,44 +344,27 @@ PostgreSQL 13 with Elasticsearch 5: Test insert returning row - PASS
 PostgreSQL 13 with Elasticsearch 5: Test insert waiting for refresh - PASS
 PostgreSQL 13 with Elasticsearch 5: Test delete returning row - PASS
 Testing PostgreSQL 13 with Elasticsearch 6
-PostgreSQL 13 with Elasticsearch 6: Test read - PASS
-PostgreSQL 13 with Elasticsearch 6: Test nested-read - PASS
-PostgreSQL 13 with Elasticsearch 6: Test sorted-read - PASS
-PostgreSQL 13 with Elasticsearch 6: Test query - PASS
-PostgreSQL 13 with Elasticsearch 6: Test json-query - PASS
-PostgreSQL 13 with Elasticsearch 6: Test insert returning id - PASS
-PostgreSQL 13 with Elasticsearch 6: Test insert returning row - PASS
-PostgreSQL 13 with Elasticsearch 6: Test insert waiting for refresh - PASS
-PostgreSQL 13 with Elasticsearch 6: Test delete returning row - PASS
-Testing PostgreSQL 13 with Elasticsearch 6-auth
-PostgreSQL 13 with Elasticsearch 6-auth: Test read - PASS
-PostgreSQL 13 with Elasticsearch 6-auth: Test nested-read - PASS
-PostgreSQL 13 with Elasticsearch 6-auth: Test sorted-read - PASS
-PostgreSQL 13 with Elasticsearch 6-auth: Test query - PASS
-PostgreSQL 13 with Elasticsearch 6-auth: Test json-query - PASS
-PostgreSQL 13 with Elasticsearch 6-auth: Test insert returning id - PASS
-PostgreSQL 13 with Elasticsearch 6-auth: Test insert returning row - PASS
-PostgreSQL 13 with Elasticsearch 6-auth: Test insert waiting for refresh - PASS
-PostgreSQL 13 with Elasticsearch 6-auth: Test delete returning row - PASS
-Testing PostgreSQL 13 with Elasticsearch 7
-PostgreSQL 13 with Elasticsearch 7: Test read - PASS
-PostgreSQL 13 with Elasticsearch 7: Test nested-read - PASS
-PostgreSQL 13 with Elasticsearch 7: Test sorted-read - PASS
-PostgreSQL 13 with Elasticsearch 7: Test query - PASS
-PostgreSQL 13 with Elasticsearch 7: Test json-query - PASS
-PostgreSQL 13 with Elasticsearch 7: Test insert returning id - PASS
-PostgreSQL 13 with Elasticsearch 7: Test insert returning row - PASS
-PostgreSQL 13 with Elasticsearch 7: Test insert waiting for refresh - PASS
-PostgreSQL 13 with Elasticsearch 7: Test delete returning row - PASS
+...
+Testing PostgreSQL 15 with Elasticsearch 8
+PostgreSQL 15 with Elasticsearch 8: Test read - PASS
+PostgreSQL 15 with Elasticsearch 8: Test nested-read - PASS
+PostgreSQL 15 with Elasticsearch 8: Test sorted-read - PASS
+PostgreSQL 15 with Elasticsearch 8: Test query - PASS
+PostgreSQL 15 with Elasticsearch 8: Test json-query - PASS
+PostgreSQL 15 with Elasticsearch 8: Test insert returning id - PASS
+PostgreSQL 15 with Elasticsearch 8: Test insert returning row - PASS
+PostgreSQL 15 with Elasticsearch 8: Test insert waiting for refresh - PASS
+PostgreSQL 15 with Elasticsearch 8: Test delete returning row - PASS
 PASS
 ```
 
 If you want to run the tests for specific versions then you can then run the
 tests using `tests/run.py`.  This takes the PostgreSQL version(s) to test using
 the `--pg` argument and the Elastic Search versions to test with the `--es`
-argument.  The currently supported versions of PostgreSQL are 9.4 through to 13.
-The currently supported versions of Elastic Search are 5 to 7. You can pass
-multiple versions to test it against all of them.
+argument.  The currently supported versions of PostgreSQL are 13, 14 and 15.
+PostgreSQL back to 9.4 is supported on a best effort basis, but the docker images are unavailable and so the tests cannot run and fixes cannot be made if there are errors.
+The currently supported versions of Elastic Search are 5 to 8. You can pass
+multiple versions to test against all of them.
 
 ### Test Failure Messages
 

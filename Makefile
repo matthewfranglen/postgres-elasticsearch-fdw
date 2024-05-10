@@ -34,8 +34,8 @@ format : $(DEP_PROJECT_PYTHON)
 	poetry run black pg_es_fdw tests
 
 ## Run Tests
-test : PG_VERSIONS ?= 9.5 9.6 10 11 12 13 14 15
-test : ES_VERSIONS ?= 5 6 6-auth 7
+test : PG_VERSIONS ?= 13 14 15
+test : ES_VERSIONS ?= 5 6 7 8
 test : $(DEP_PROJECT_PYTHON)
 	poetry run tests/run.py --pg $(PG_VERSIONS) --es $(ES_VERSIONS)
 
@@ -49,8 +49,10 @@ start : $(DEP_PROJECT_PYTHON)
 publish : $(DEP_PROJECT_PYTHON)
 	poetry publish --build
 
+$(DEP_PROJECT_PYTHON) : PYTHON_VERSION ?= $(shell cat .python-version)
 $(DEP_PROJECT_PYTHON) : pyproject.toml
-	poetry install
+	poetry env use $(PYTHON_VERSION)
+	PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring poetry install --no-root
 	if [ ! -e .make ]; then mkdir .make; fi
 	touch $(DEP_PROJECT_PYTHON)
 
