@@ -1,25 +1,27 @@
 """ Elastic Search foreign data wrapper """
+
 # pylint: disable=too-many-instance-attributes, import-error, unexpected-keyword-arg, broad-except, line-too-long
 
 import logging
 
 from multicorn import ForeignDataWrapper
 from multicorn.utils import log_to_postgres as log2pg
-from .options import ElasticsearchFDWOptions
+
 from .columns import make_columns
+from .options import ElasticsearchFDWOptions
 
 
 class ElasticsearchFDW(ForeignDataWrapper):
-    """ Elastic Search Foreign Data Wrapper """
+    """Elastic Search Foreign Data Wrapper"""
 
     @property
     def rowid_column(self):
-        """ Returns a column name which will act as a rowid column for
-            delete/update operations.
+        """Returns a column name which will act as a rowid column for
+        delete/update operations.
 
-            This can be either an existing column name, or a made-up one. This
-            column name should be subsequently present in every returned
-            resultset. """
+        This can be either an existing column name, or a made-up one. This
+        column name should be subsequently present in every returned
+        resultset."""
 
         return self.options.rowid_column
 
@@ -32,8 +34,8 @@ class ElasticsearchFDW(ForeignDataWrapper):
         self.scroll_id = None
 
     def get_rel_size(self, quals, columns):
-        """ Helps the planner by returning costs.
-            Returns a tuple of the form (number of rows, average row width) """
+        """Helps the planner by returning costs.
+        Returns a tuple of the form (number of rows, average row width)"""
 
         try:
             query = self.options.get_query(quals)
@@ -50,7 +52,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
             return (0, 0)
 
     def execute(self, quals, columns):
-        """ Execute the query """
+        """Execute the query"""
 
         try:
             query = self.options.get_query(quals)
@@ -83,13 +85,13 @@ class ElasticsearchFDW(ForeignDataWrapper):
             return
 
     def end_scan(self):
-        """ Hook called at the end of a foreign scan. """
+        """Hook called at the end of a foreign scan."""
         if self.scroll_id:
             self.client.clear_scroll(scroll_id=self.scroll_id)
             self.scroll_id = None
 
     def insert(self, new_values):
-        """ Insert new documents into Elastic Search """
+        """Insert new documents into Elastic Search"""
         document_id, document = self.columns.serialize(new_values)
 
         try:
@@ -115,11 +117,11 @@ class ElasticsearchFDW(ForeignDataWrapper):
             return (0, 0)
 
     def update(self, document_id, new_values):
-        """ Update existing documents in Elastic Search """
+        """Update existing documents in Elastic Search"""
         _, document = self.columns.serialize(new_values)
 
         try:
-            response = self.client.index(
+            response = self.client.update(
                 id=document_id,
                 body=document,
                 refresh=self.options.refresh,
@@ -130,7 +132,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
             return {self.options.rowid_column: response["_id"]}
         except Exception as exception:
             log2pg(
-                "INDEX for {path}/{document_id} and document {document} failed: {exception}".format(
+                "UPDATE for {path}/{document_id} and document {document} failed: {exception}".format(
                     path=self.options.path,
                     document_id=document_id,
                     document=new_values,
@@ -141,7 +143,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
             return (0, 0)
 
     def delete(self, document_id):
-        """ Delete documents from Elastic Search """
+        """Delete documents from Elastic Search"""
 
         if self.options.complete_returning:
             document = self._read_by_id(document_id)
