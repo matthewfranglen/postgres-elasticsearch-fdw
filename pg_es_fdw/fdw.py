@@ -119,7 +119,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
         _, document = self.columns.serialize(new_values)
 
         try:
-            response = self.client.index(
+            response = self.client.update(
                 id=document_id,
                 body=document,
                 refresh=self.options.refresh,
@@ -130,7 +130,7 @@ class ElasticsearchFDW(ForeignDataWrapper):
             return {self.options.rowid_column: response["_id"]}
         except Exception as exception:
             log2pg(
-                "INDEX for {path}/{document_id} and document {document} failed: {exception}".format(
+                "UPDATE for {path}/{document_id} and document {document} failed: {exception}".format(
                     path=self.options.path,
                     document_id=document_id,
                     document=new_values,
