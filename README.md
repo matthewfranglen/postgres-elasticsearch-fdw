@@ -14,16 +14,17 @@ SYNOPSIS
 | 5 | `sudo pip install "elasticsearch>=5,<6"` |
 | 6 | `sudo pip install "elasticsearch>=6,<7"` |
 | 7 | `sudo pip install "elasticsearch>=7,<8"` |
+| 8 | `sudo pip install "elasticsearch>=8,<9"` |
 
-| PostgreSQL | Dependency Installation Command                        |
-|------------|--------------------------------------------------------|
-| 9.4        | `sudo apt-get install postgresql-9.4-python-multicorn` |
-| 9.5        | `sudo apt-get install postgresql-9.5-python-multicorn` |
-| 9.6        | `sudo apt-get install postgresql-9.6-python-multicorn` |
-| 10         | `sudo apt-get install postgresql-10-python-multicorn`  |
-| 11         | `sudo apt-get install postgresql-11-python-multicorn`  |
-| 12         | `sudo apt-get install postgresql-12-python3-multicorn` |
-| 13         | `sudo apt-get install postgresql-13-python3-multicorn` |
+| PostgreSQL | Dependency Installation Command                                     |
+|------------|---------------------------------------------------------------------|
+| 9.4        | `sudo apt-get install postgresql-9.4-python-multicorn`              |
+| 9.5        | `sudo apt-get install postgresql-9.5-python-multicorn`              |
+| 9.6        | `sudo apt-get install postgresql-9.6-python-multicorn`              |
+| 10         | `sudo apt-get install postgresql-10-python-multicorn`               |
+| 11         | `sudo apt-get install postgresql-11-python-multicorn`               |
+| 12         | `sudo apt-get install postgresql-12-python3-multicorn`              |
+| 13         | `sudo apt-get install postgresql-13-python3-multicorn`              |
 
 Please note that the Debian package for Multicorn on PostgreSQL 12+ requires Python 3.
 
@@ -311,11 +312,20 @@ There are end to end tests that use docker to create a PostgreSQL and Elastic
 Search database. These are then populated with data and tests are run against
 them.
 
-These require docker and docker-compose. These also require python packages
-which you can install with:
+These require docker and docker-compose (see the [installation
+instructions](https://docs.docker.com/engine/install/ubuntu/)).
+
+These currently target Python 3.11.9 which you can install with
+[pyenv](https://github.com/pyenv/pyenv/#installation).
+
+These also require [poetry](https://python-poetry.org/docs/#installation) to
+manage the python dependencies.
+
+Once you have installed python 3.11.9, docker, docker-compose and poetry you
+can install the requirements with:
 
 ```bash
-pip install -r tests/requirements.txt
+make requirements
 ```
 
 The makefile will test all versions if you run `make test`:
