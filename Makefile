@@ -49,8 +49,10 @@ start : $(DEP_PROJECT_PYTHON)
 publish : $(DEP_PROJECT_PYTHON)
 	poetry publish --build
 
+$(DEP_PROJECT_PYTHON) : PYTHON_VERSION ?= $(shell cat .python-version)
 $(DEP_PROJECT_PYTHON) : pyproject.toml
-	poetry install
+	poetry env use $(PYTHON_VERSION)
+	PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring poetry install --no-root
 	if [ ! -e .make ]; then mkdir .make; fi
 	touch $(DEP_PROJECT_PYTHON)
 
