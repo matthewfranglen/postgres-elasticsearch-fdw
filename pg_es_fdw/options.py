@@ -2,6 +2,7 @@
 Wrapper for the foreign data wrapper table options.
 Provides a facade over everything that the options detail.
 """
+
 # pylint: disable=too-many-instance-attributes
 import json
 
